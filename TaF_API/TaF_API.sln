@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33122.133
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaF_API", "TaF_API\TaF_API.csproj", "{3FDF59AA-0727-48E6-8194-F99CEFA57D1D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaF_Neo4j", "TaF_Neo4j\TaF_Neo4j.csproj", "{99E8FBCD-FE46-4F81-8ECD-9B5B4C6BB596}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaF_Redis", "TaF_Redis\TaF_Redis.csproj", "{83336244-E497-49A8-9BC9-E4B3DC61C171}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3FDF59AA-0727-48E6-8194-F99CEFA57D1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FDF59AA-0727-48E6-8194-F99CEFA57D1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FDF59AA-0727-48E6-8194-F99CEFA57D1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FDF59AA-0727-48E6-8194-F99CEFA57D1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99E8FBCD-FE46-4F81-8ECD-9B5B4C6BB596}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99E8FBCD-FE46-4F81-8ECD-9B5B4C6BB596}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99E8FBCD-FE46-4F81-8ECD-9B5B4C6BB596}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99E8FBCD-FE46-4F81-8ECD-9B5B4C6BB596}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83336244-E497-49A8-9BC9-E4B3DC61C171}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83336244-E497-49A8-9BC9-E4B3DC61C171}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83336244-E497-49A8-9BC9-E4B3DC61C171}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83336244-E497-49A8-9BC9-E4B3DC61C171}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7EE455CF-8EE2-4D57-90E3-69D00F95168D}
+	EndGlobalSection
+EndGlobal
