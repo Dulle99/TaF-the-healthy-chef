@@ -43,7 +43,7 @@ namespace TaF_Neo4j.Services.MutalMethodsForContent
             try
             {
                 string folderPath = GetFolderPathByContentType(cookingRecipe);
-                string imageFilePath = folderPath + contentId.ToString();
+                string imageFilePath = folderPath + contentId.ToString()+".jpg";
                 var image = File.ReadAllBytes(imageFilePath);
                 return image;
             }
