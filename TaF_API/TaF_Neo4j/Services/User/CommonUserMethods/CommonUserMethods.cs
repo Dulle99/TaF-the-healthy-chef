@@ -97,7 +97,7 @@ namespace TaF_Neo4j.Services.User.CommonUserMethods
             try
             {
                 string folderPath = GetFolderPathByUserType(author);
-                string imageFilePath = folderPath + username;
+                string imageFilePath = folderPath + username +".jpg";
                 byte[] image = File.ReadAllBytes(imageFilePath);
                 if (image.Length > 0)
                     return image;

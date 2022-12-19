@@ -10,6 +10,8 @@ using TaF_Neo4j.DTOs;
 using TaF_Neo4j.DTOs.Comment;
 using TaF_Neo4j.DTOs.Rate;
 using Microsoft.AspNetCore.Authorization;
+using StackExchange.Redis;
+using TaF_Redis.Services.User;
 
 namespace TaF_WebAPI.Controllers
 {
@@ -18,9 +20,13 @@ namespace TaF_WebAPI.Controllers
     public class BlogController : ControllerBase
     {
         private IBlogService _blogService;
-        public BlogController(IGraphClient client)
+        private IUserServiceRedis _userServiceRedis;
+
+
+        public BlogController(IGraphClient client, IConnectionMultiplexer redis)
         {
             _blogService = new BlogService(client);
+            _userServiceRedis = new UserServiceRedis(redis, client);
         }
 
         [HttpPost]
@@ -83,6 +89,7 @@ namespace TaF_WebAPI.Controllers
         [Route("GetBlogsByAuthor/{authorUsername}/{numberOfBlogsToGet}")]
         public async Task<IActionResult> GetPreviewBlogsByAuthor(string authorUsername, int numberOfBlogsToGet)
         {
+            _userServiceRedis.CacheAuthorBlogs(authorUsername);
             return new JsonResult(await this._blogService.GetPreviewBlogsByAuthor(authorUsername, numberOfBlogsToGet));
         }
 

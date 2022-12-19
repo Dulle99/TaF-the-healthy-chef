@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Neo4jClient;
+using StackExchange.Redis;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,6 +43,9 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 
+#region ConnectingToDatabase's
+
+
 var graphClient = new GraphClient(new Uri(
                 builder.Configuration.GetSection("Neo4jConnectionSettings:Server").Value),
                 builder.Configuration.GetSection("Neo4jConnectionSettings:User").Value,
@@ -52,7 +56,12 @@ var graphClient = new GraphClient(new Uri(
 
 graphClient.ConnectAsync();
 
+var multiplexer = ConnectionMultiplexer.Connect("localhost");
+
 builder.Services.AddSingleton<IGraphClient, GraphClient>(_ => graphClient);
+builder.Services.AddSingleton<IConnectionMultiplexer>(multiplexer);
+
+#endregion ConnectingToDatabase's
 
 builder.Services.AddAuthentication(options =>
 {

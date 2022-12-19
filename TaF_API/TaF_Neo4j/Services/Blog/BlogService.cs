@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Neo4jClient;
+using StackExchange.Redis;
 using TaF_Neo4j.DTOs;
 using TaF_Neo4j.DTOs.BlogDTO;
 using TaF_Neo4j.DTOs.Comment;
