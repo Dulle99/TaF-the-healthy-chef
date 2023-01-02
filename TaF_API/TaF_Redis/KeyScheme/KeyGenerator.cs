@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TaF_Redis.KeyScheme.Types;
+using TaF_Redis.Types;
 
 namespace TaF_Redis.KeyScheme
 {
@@ -12,14 +12,13 @@ namespace TaF_Redis.KeyScheme
         public static string CreateKeyForAuthorPersonalContent(string username, ContentType contentType)
         {
             string typeOfConent = TypeResolver.ResolveContentType(contentType);
-            return "author:" + username + typeOfConent;
+            return "author:" + username + ":" + typeOfConent;
         }
 
-        public static string CreateKeyForUserSavedContent(string username, ContentType contentType)
+        public static string CreateKeyForUsersSavedContent(string username, ContentType contentType)
         {
             string typeOfConent = TypeResolver.ResolveContentType(contentType);
-            return "user:" + username + typeOfConent;
-              
+            return "user:" + username + "SavedContents:" + typeOfConent;
         }
 
         public static string CreateKeyForRecommendedContent(ContentType contentType)
@@ -30,7 +29,13 @@ namespace TaF_Redis.KeyScheme
 
         public static string CreateKeyForFilteredContent(FilterType filterType, ContentType contentType)
         {
-            return TypeResolver.ResolveFilterType(filterType) + TypeResolver.ResolveContentType(contentType);
+            return TypeResolver.ResolveFilterType(filterType) + ":" + TypeResolver.ResolveContentType(contentType);
+        }
+
+        public static string CreateKeyForContent(ContentType contentType, Guid contentId)
+        {
+            string typeOfContent = TypeResolver.ResolveContentType(contentType);
+            return typeOfContent + ":" + contentId.ToString() + ":Id";
         }
     }
 }

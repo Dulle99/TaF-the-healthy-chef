@@ -58,6 +58,7 @@ graphClient.ConnectAsync();
 
 var multiplexer = ConnectionMultiplexer.Connect("localhost");
 
+
 builder.Services.AddSingleton<IGraphClient, GraphClient>(_ => graphClient);
 builder.Services.AddSingleton<IConnectionMultiplexer>(multiplexer);
 

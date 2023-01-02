@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TaF_Redis.KeyScheme
+namespace TaF_Redis.Types
 {
     public enum ContentType
     {
-        blogs,
-        cookingRecepies,
-        savedBlogs,
-        savedCookingRecepies
+        blog,
+        cookingRecepie,
+        savedBlog,
+        savedCookingRecepie
     }
 }

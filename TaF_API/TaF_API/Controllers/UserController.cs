@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Neo4jClient;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ using TaF_Neo4j.DTOs;
 using TaF_Neo4j.DTOs.UserDTO;
 using TaF_Neo4j.Services.User.Author;
 using TaF_Neo4j.Services.User.Reader;
+using TaF_Redis.Services.User;
 
 namespace TaF_WebAPI.Controllers
 {
@@ -19,11 +21,13 @@ namespace TaF_WebAPI.Controllers
     {
         private IAuthorService _authorService;
         private IReaderService _readerService;
+        private IUserServiceRedis _userServiceRedis;
 
-        public UserController(IGraphClient client)
+        public UserController(IGraphClient client, IConnectionMultiplexer redis)
         {
             _authorService = new AuthorService(client);
             _readerService = new ReaderService(client);
+            _userServiceRedis = new UserServiceRedis(redis, client);
         }
 
         [HttpPost]
@@ -50,6 +54,8 @@ namespace TaF_WebAPI.Controllers
                 {
                     var token = JwtToken.JWToken.GenerateToken(loggedUser.Username, true);
                     loggedUser.Token = token;
+                    await _userServiceRedis.CacheAuthorCookingRecepies(loggedUser.Username);
+                    await _userServiceRedis.CacheAuthorBlogs(loggedUser.Username);
                     return new JsonResult(loggedUser);
                 }
                 else if (loggedUser.LoginInformation == "InvalidPassword")

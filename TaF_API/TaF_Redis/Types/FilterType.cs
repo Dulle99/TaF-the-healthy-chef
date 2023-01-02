@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TaF_Redis.KeyScheme.Types
+namespace TaF_Redis.Types
 {
     public enum FilterType
     {

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Neo4jClient;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ using TaF_Neo4j.DTOs.Comment;
 using TaF_Neo4j.DTOs.CookingRecepieDTO;
 using TaF_Neo4j.DTOs.Rate;
 using TaF_Neo4j.Services.CookingRecepie;
+using TaF_Redis.Services.User;
 
 namespace TaF_WebAPI.Controllers
 {
@@ -19,9 +21,12 @@ namespace TaF_WebAPI.Controllers
     public class CookingRecepieController : ControllerBase
     {
         private ICookingRecepieService _cookingRecepieService;
-        public CookingRecepieController(IGraphClient client)
+        private IUserServiceRedis _userServiceRedis;
+
+        public CookingRecepieController(IGraphClient client, IConnectionMultiplexer redis)
         {
             _cookingRecepieService = new CookingRecepieService(client);
+            _userServiceRedis = new UserServiceRedis(redis, client);
         }
 
         [HttpPost]
@@ -91,7 +96,11 @@ namespace TaF_WebAPI.Controllers
         [Route("GetCookingRecepiesByAuthor/{authorUsername}/{numberOfCookingRecepiesToGet}")]
         public async Task<IActionResult> GetPreviewCookingRecepiesByAuthor(string authorUsername, int numberOfCookingRecepiesToGet)
         {
-            return new JsonResult(await this._cookingRecepieService.GetPreviewCookingRecepiesByAuthor(authorUsername, numberOfCookingRecepiesToGet));
+            if (numberOfCookingRecepiesToGet > 5)
+                return new JsonResult(await this._cookingRecepieService.GetPreviewCookingRecepiesByAuthor(authorUsername, numberOfCookingRecepiesToGet));
+            else
+                return new JsonResult(await this._userServiceRedis.GetCachedCookingRecepiesByAuthor(authorUsername));
+            
         }
 
         [HttpGet]

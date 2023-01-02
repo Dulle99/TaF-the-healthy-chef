@@ -2,6 +2,7 @@
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -22,15 +23,13 @@ namespace TaF_Redis.Services.MutalMethods
                       {
                           object propertyValue = property.GetValue(obj);
                           string hashValue;
-
-                          // This will detect if given property value is 
-                          // enumerable, which is a good reason to serialize it
-                          // as JSON!
                           if (propertyValue is IEnumerable<object>)
                           {
-                              // So you use JSON.NET to serialize the property
-                              // value as JSON
                               hashValue = JsonConvert.SerializeObject(propertyValue);
+                          }
+                          else if(propertyValue is byte[])
+                          {
+                              hashValue = Convert.ToBase64String((byte[])propertyValue);
                           }
                           else
                           {
@@ -51,7 +50,13 @@ namespace TaF_Redis.Services.MutalMethods
             {
                 HashEntry entry = hashEntries.FirstOrDefault(g => g.Name.ToString().Equals(property.Name));
                 if (entry.Equals(new HashEntry())) continue;
-                property.SetValue(obj, Convert.ChangeType(entry.Value.ToString(), property.PropertyType));
+
+                if (property.PropertyType.Name == "Byte[]")
+                    property.SetValue(obj, Convert.ChangeType(Convert.FromBase64String(entry.Value), property.PropertyType));
+                else if (property.PropertyType.Name == "Guid")
+                    property.SetValue(obj, Convert.ChangeType(new Guid(entry.Value.ToString()), property.PropertyType));
+                else
+                    property.SetValue(obj, Convert.ChangeType(entry.Value.ToString(), property.PropertyType));
             }
             return (T)obj;
         }

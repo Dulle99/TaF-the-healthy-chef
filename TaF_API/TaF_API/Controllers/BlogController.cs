@@ -89,8 +89,11 @@ namespace TaF_WebAPI.Controllers
         [Route("GetBlogsByAuthor/{authorUsername}/{numberOfBlogsToGet}")]
         public async Task<IActionResult> GetPreviewBlogsByAuthor(string authorUsername, int numberOfBlogsToGet)
         {
-            _userServiceRedis.CacheAuthorBlogs(authorUsername);
-            return new JsonResult(await this._blogService.GetPreviewBlogsByAuthor(authorUsername, numberOfBlogsToGet));
+            if(numberOfBlogsToGet > 5)
+                return new JsonResult(await this._blogService.GetPreviewBlogsByAuthor(authorUsername, numberOfBlogsToGet));
+            else
+                return new JsonResult(await this._userServiceRedis.GetCachedBlogsByAuthor(authorUsername, numberOfBlogsToGet));
+
         }
 
         [HttpGet]

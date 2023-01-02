@@ -4,20 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TaF_Redis.KeyScheme.Types
+namespace TaF_Redis.Types
 {
     public static class TypeResolver
     {
         public static string ResolveContentType(ContentType contentType)
         {
-            if (contentType == ContentType.blogs)
-                return ":blogs";
-            else if (contentType == ContentType.cookingRecepies)
-                return ":cookingRecepies";
-            else if (contentType == ContentType.savedBlogs)
-                return ":savedBlogs";
+            if (contentType == ContentType.blog)
+                return "blog";
+            else if (contentType == ContentType.cookingRecepie)
+                return "cookingRecepie";
+            else if (contentType == ContentType.savedBlog)
+                return "savedBlog";
             else
-                return ":savedCookingReceies";
+                return "savedCookingReceie";
         }
 
         public static string ResolveFilterType(FilterType filterType)
