@@ -15,6 +15,7 @@ using TaF_Neo4j.Services.Blog;
 using TaF_Neo4j.Services.CookingRecepie;
 using TaF_Redis.KeyScheme;
 using TaF_Redis.Services.MutalMethods;
+using TaF_Redis.Types;
 
 namespace TaF_Redis.Services.User
 {
@@ -71,6 +72,44 @@ namespace TaF_Redis.Services.User
 
             }
         }
+
+        public async Task CacheUsersSavedCookingRecepies(UserType userType, string username)
+        {
+            try
+            {
+                var userSavedCookingRecepies_SetKey = KeyGenerator.CreateKeyForUsersSavedContent(username, ContentType.savedCookingRecepie);
+                var savedCookingRecepies = await AuxiliaryContentMethods.GetUserSavedCookingRecepies(this._client, username, userType);
+
+                foreach(var cookingRecepie in savedCookingRecepies)
+                {
+                    await AuxiliaryContentMethods.SaveContentToRedisDatabase(this._redis, ContentType.cookingRecepie, cookingRecepie, 
+                                                                             cookingRecepie.CookingRecepieId, userSavedCookingRecepies_SetKey);
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+
+        public async Task CacheUsersSavedBlogs(UserType userType, string username)
+        {
+            try
+            {
+                var userSavedBlogs_SetKey = KeyGenerator.CreateKeyForUsersSavedContent(username, ContentType.savedBlog);
+                var savedBlogs = await AuxiliaryContentMethods.GetUserSavedBlogs(_client, username, userType);
+
+                foreach(var blog in savedBlogs)
+                {
+                    await AuxiliaryContentMethods.SaveContentToRedisDatabase(_redis, ContentType.blog, blog,blog.BlogId, userSavedBlogs_SetKey);
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
         #endregion CacheData
 
         #region GetCachedData
@@ -101,6 +140,38 @@ namespace TaF_Redis.Services.User
                 return blogsOfTheAuthor;
             }
             catch(Exception ex)
+            {
+                return new List<BlogPreviewDTO>();
+            }
+        }
+
+        public async Task<List<CookingRecepiePreviewDTO>> GetCached_ReadLaterCookingRecepies(string username, int numberOfCookingRecepiesToGet = 5)
+        {
+            try
+            {
+                var userSavedCookingRecepies_SetKey = KeyGenerator.CreateKeyForUsersSavedContent(username, ContentType.savedCookingRecepie);
+                var cachedHashKeys_OfSavedCookingRecepies = _redis.SetMembers(userSavedCookingRecepies_SetKey).ToStringArray();
+
+                var savedCookingRecepies = await AuxiliaryContentMethods.GetContentFromHash<CookingRecepiePreviewDTO>(this._redis, cachedHashKeys_OfSavedCookingRecepies);
+                return savedCookingRecepies;
+            }
+            catch(Exception ex) 
+            {
+                return new List<CookingRecepiePreviewDTO>();
+            }
+        }
+
+        public async Task<List<BlogPreviewDTO>> GetCached_ReadLaterBlogs(string username, int numberOfBlogsToGet = 5)
+        {
+            try
+            {
+                var userSavedBlogs_SetKey = KeyGenerator.CreateKeyForUsersSavedContent(username, ContentType.savedBlog);
+                var cachedHashKeys_OfSavedBlogs = _redis.SetMembers(userSavedBlogs_SetKey).ToStringArray();
+
+                var savedBlogs = await AuxiliaryContentMethods.GetContentFromHash<BlogPreviewDTO>(_redis, cachedHashKeys_OfSavedBlogs);
+                return savedBlogs;
+            }
+            catch(Exception ex) 
             {
                 return new List<BlogPreviewDTO>();
             }

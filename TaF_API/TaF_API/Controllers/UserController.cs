@@ -42,6 +42,8 @@ namespace TaF_WebAPI.Controllers
             {
                 var token = JwtToken.JWToken.GenerateToken(loggedUser.Username, false);
                 loggedUser.Token = token;
+                await _userServiceRedis.CacheUsersSavedCookingRecepies(TaF_Redis.Types.UserType.Reader, loggedUser.Username);
+                await _userServiceRedis.CacheUsersSavedBlogs(TaF_Redis.Types.UserType.Reader, loggedUser.Username);
                 return new JsonResult(loggedUser);
             }
             else if (loggedUser.LoginInformation == "InvalidPassword")
@@ -56,6 +58,8 @@ namespace TaF_WebAPI.Controllers
                     loggedUser.Token = token;
                     await _userServiceRedis.CacheAuthorCookingRecepies(loggedUser.Username);
                     await _userServiceRedis.CacheAuthorBlogs(loggedUser.Username);
+                    await _userServiceRedis.CacheUsersSavedCookingRecepies(TaF_Redis.Types.UserType.Author, loggedUser.Username);
+                    await _userServiceRedis.CacheUsersSavedBlogs(TaF_Redis.Types.UserType.Author, loggedUser.Username);
                     return new JsonResult(loggedUser);
                 }
                 else if (loggedUser.LoginInformation == "InvalidPassword")
@@ -282,13 +286,20 @@ namespace TaF_WebAPI.Controllers
         [Route("GetSavedBlogs/{username}/{typeOfUser}/{numberOfReadBlogsRecepiesToGet}")]
         public async Task<IActionResult> GetReadLaterBlogs(string username, string typeOfUser, int numberOfReadBlogsRecepiesToGet)
         {
-            if (typeOfUser == "Author")
+            if (numberOfReadBlogsRecepiesToGet <= 5)
             {
-                return new JsonResult(await this._authorService.GetReadLaterBlogs(username, numberOfReadBlogsRecepiesToGet));
+                return new JsonResult(await this._userServiceRedis.GetCached_ReadLaterBlogs(username));
             }
             else
             {
-                return new JsonResult(await this._readerService.GetReadLaterBlogs(username, numberOfReadBlogsRecepiesToGet));
+                if (typeOfUser == "Author")
+                {
+                    return new JsonResult(await this._authorService.GetReadLaterBlogs(username, numberOfReadBlogsRecepiesToGet));
+                }
+                else
+                {
+                    return new JsonResult(await this._readerService.GetReadLaterBlogs(username, numberOfReadBlogsRecepiesToGet));
+                }
             }
         }
 
@@ -297,13 +308,20 @@ namespace TaF_WebAPI.Controllers
         [Route("GetSavedCookingRecepie/{username}/{typeOfUser}/{numberOfReadLaterCookingRecepiesToGet}")]
         public async Task<IActionResult> GetReadLaterCookingRecepie(string username, string typeOfUser, int numberOfReadLaterCookingRecepiesToGet)
         {
-            if (typeOfUser == "Author")
+            if ( numberOfReadLaterCookingRecepiesToGet <=5)
             {
-                return new JsonResult(await this._authorService.GetReadLaterCookingRecepies(username, numberOfReadLaterCookingRecepiesToGet));
+                return new JsonResult(await this._userServiceRedis.GetCached_ReadLaterCookingRecepies(username));
             }
             else
             {
-                return new JsonResult(await this._readerService.GetReadLaterCookingRecepies(username, numberOfReadLaterCookingRecepiesToGet));
+                if (typeOfUser == "Author")
+                {
+                    return new JsonResult(await this._authorService.GetReadLaterCookingRecepies(username, numberOfReadLaterCookingRecepiesToGet));
+                }
+                else
+                {
+                    return new JsonResult(await this._readerService.GetReadLaterCookingRecepies(username, numberOfReadLaterCookingRecepiesToGet));
+                }
             }
         }
 

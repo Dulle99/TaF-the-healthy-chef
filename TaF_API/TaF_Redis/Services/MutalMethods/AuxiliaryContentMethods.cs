@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.ObjectPool;
+using Neo4jClient;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
@@ -7,6 +8,10 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using TaF_Neo4j.DTOs.BlogDTO;
+using TaF_Neo4j.DTOs.CookingRecepieDTO;
+using TaF_Neo4j.Models;
+using TaF_Neo4j.Services.User.Author;
+using TaF_Neo4j.Services.User.Reader;
 using TaF_Redis.KeyScheme;
 
 namespace TaF_Redis.Services.MutalMethods
@@ -36,6 +41,34 @@ namespace TaF_Redis.Services.MutalMethods
             }
             else
                 return new List<T>();
+        }
+
+        public async static Task<List<CookingRecepiePreviewDTO>> GetUserSavedCookingRecepies(IGraphClient client, string username, Types.UserType typeOfUser)
+        {
+            if(typeOfUser == Types.UserType.Author)
+            {
+                var authorService = new AuthorService(client);
+                return await authorService.GetReadLaterCookingRecepies(username, 5);
+            }
+            else
+            {
+                var readerService = new ReaderService(client);
+                return await readerService.GetReadLaterCookingRecepies(username, 5);
+            }
+        }
+
+        public async static Task<List<BlogPreviewDTO>> GetUserSavedBlogs(IGraphClient client, string username, Types.UserType typeOfUser)
+        {
+            if (typeOfUser == Types.UserType.Author)
+            {
+                var authorService = new AuthorService(client);
+                return await authorService.GetReadLaterBlogs(username, 5);
+            }
+            else
+            {
+                var readerService = new ReaderService(client);
+                return await readerService.GetReadLaterBlogs(username, 5);
+            }
         }
     }
 

@@ -15,8 +15,12 @@ namespace TaF_Redis.Services.User
     {
         public Task CacheAuthorCookingRecepies(string username, int numberOfCoookingRecepiesToCache = 5);
         public Task CacheAuthorBlogs(string username, int numberOfBlogsToCache = 5);
+        public Task CacheUsersSavedCookingRecepies(UserType userType, string username);
+        public Task CacheUsersSavedBlogs(UserType userType, string username);
 
         public Task<List<CookingRecepiePreviewDTO>> GetCachedCookingRecepiesByAuthor(string authorUsername, int numberOfCookingRecepiesToGet = 5);
         public Task<List<BlogPreviewDTO>> GetCachedBlogsByAuthor(string authorUsername, int numberOfBlogsToGet = 5);
+        public Task<List<CookingRecepiePreviewDTO>> GetCached_ReadLaterCookingRecepies(string username, int numberOfCookingRecepiesToGet = 5);
+        public Task<List<BlogPreviewDTO>> GetCached_ReadLaterBlogs(string username, int numberOfBlogsToGet = 5);
     }
 }
