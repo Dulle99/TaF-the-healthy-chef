@@ -14,6 +14,7 @@ import BlogPreviews from '../Blog/BlogComponents/BlogPreviews';
 import ILoggedStatus from '../ILoggedStatus';
 import IUserLoggedStatusChange from '../IUserLoggedInvoke';
 import { AiOutlineMenu } from "react-icons/ai";
+import axios from 'axios';
 
 
 function Header(prop: IUserLoggedStatusChange) {
@@ -31,7 +32,20 @@ function Header(prop: IUserLoggedStatusChange) {
         setAnchorElNav(null);
     };
 
-    const handleLogout: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+    const handleLogout: React.MouseEventHandler<HTMLButtonElement> = async (e) => {
+
+        let username = sessionStorage.getItem('username');
+        let typeOfUser = sessionStorage.getItem('typeOfUser');
+        if (username != null || typeOfUser != "Author") {
+            let url: string = `https://localhost:5001/api/User/Logout/${username}/${typeOfUser}`;
+        
+
+            const result = await axios.delete(url, {
+                headers: {
+                    'Authorization': 'Bearer ' + window.sessionStorage.getItem("token")
+                },
+            });
+        }
         sessionStorage.removeItem('token');
         sessionStorage.removeItem('username');
         sessionStorage.removeItem('typeOfUser');

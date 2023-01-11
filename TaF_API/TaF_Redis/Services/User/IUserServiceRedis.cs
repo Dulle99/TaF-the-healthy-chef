@@ -22,5 +22,8 @@ namespace TaF_Redis.Services.User
         public Task<List<BlogPreviewDTO>> GetCachedBlogsByAuthor(string authorUsername, int numberOfBlogsToGet = 5);
         public Task<List<CookingRecepiePreviewDTO>> GetCached_ReadLaterCookingRecepies(string username, int numberOfCookingRecepiesToGet = 5);
         public Task<List<BlogPreviewDTO>> GetCached_ReadLaterBlogs(string username, int numberOfBlogsToGet = 5);
+
+        public Task RemoveUserCachedData(string username, Types.UserType userType);
+        public Task RemoveUserSavedContent(string username, Types.ContentType contentType, Guid contentId);
     }
 }

@@ -12,6 +12,7 @@ using TaF_Neo4j.DTOs.Comment;
 using TaF_Neo4j.DTOs.CookingRecepieDTO;
 using TaF_Neo4j.DTOs.Rate;
 using TaF_Neo4j.Services.CookingRecepie;
+using TaF_Redis.Services.Content;
 using TaF_Redis.Services.User;
 
 namespace TaF_WebAPI.Controllers
@@ -22,11 +23,13 @@ namespace TaF_WebAPI.Controllers
     {
         private ICookingRecepieService _cookingRecepieService;
         private IUserServiceRedis _userServiceRedis;
+        private IContentServiceRedis _contentServiceRedis;
 
         public CookingRecepieController(IGraphClient client, IConnectionMultiplexer redis)
         {
             _cookingRecepieService = new CookingRecepieService(client);
             _userServiceRedis = new UserServiceRedis(redis, client);
+            _contentServiceRedis = new ContentServiceRedis(redis, client);
         }
 
         [HttpPost]
@@ -151,7 +154,10 @@ namespace TaF_WebAPI.Controllers
         public async Task<IActionResult> DeleteCookingRecepie(Guid cookingRecepieId)
         {
             if (await this._cookingRecepieService.DeleteCookingRecepie(cookingRecepieId))
+            {
+                await this._contentServiceRedis.RemoveContentFromCache(TaF_Redis.Types.ContentType.cookingRecepie, cookingRecepieId);
                 return Ok();
+            }
             else
                 return BadRequest();
         }

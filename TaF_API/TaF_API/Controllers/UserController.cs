@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TaF_Neo4j.DTOs;
 using TaF_Neo4j.DTOs.UserDTO;
+using TaF_Neo4j.Models;
 using TaF_Neo4j.Services.User.Author;
 using TaF_Neo4j.Services.User.Reader;
 using TaF_Redis.Services.User;
@@ -231,14 +232,20 @@ namespace TaF_WebAPI.Controllers
             if (typeOfUser == "Author")
             {
                 if (await this._authorService.RemoveBlogToReadLater(username, blogId))
+                {
+                    await this._userServiceRedis.RemoveUserSavedContent(username, TaF_Redis.Types.ContentType.savedBlog, blogId);
                     return Ok();
+                }
                 else
                     return BadRequest();
             }
             else
             {
                 if (await this._readerService.RemoveBlogToReadLater(username, blogId))
+                {
+                    await this._userServiceRedis.RemoveUserSavedContent(username, TaF_Redis.Types.ContentType.savedBlog, blogId);
                     return Ok();
+                }
                 else
                     return BadRequest();
             }
@@ -254,17 +261,36 @@ namespace TaF_WebAPI.Controllers
             if (typeOfUser == "Author")
             {
                 if (await this._authorService.RemoveCookingRecepieToReadLater(username, cookingRecepieId))
+                {
+                    await this._userServiceRedis.RemoveUserSavedContent(username, TaF_Redis.Types.ContentType.savedCookingRecepie, cookingRecepieId);
                     return Ok();
+                }
                 else
                     return BadRequest();
             }
             else
             {
                 if (await this._readerService.RemoveCookingRecepieToReadLater(username, cookingRecepieId))
+                {
+                    await this._userServiceRedis.RemoveUserSavedContent(username, TaF_Redis.Types.ContentType.savedCookingRecepie, cookingRecepieId);
                     return Ok();
+                }
                 else
                     return BadRequest();
             }
+        }
+
+        [HttpDelete]
+        [Authorize(Roles = "Author, Reader")]
+        [Route("Logout/{username}/{typeOfUser}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task Logout(string username, string typeOfUser)
+        {
+            if (typeOfUser == "Author")
+                await this._userServiceRedis.RemoveUserCachedData(username, TaF_Redis.Types.UserType.Author);
+            else
+                await this._userServiceRedis.RemoveUserCachedData(username, TaF_Redis.Types.UserType.Reader);
         }
 
 

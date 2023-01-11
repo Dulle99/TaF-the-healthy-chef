@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mime;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using TaF_Neo4j.DTOs.BlogDTO;
@@ -18,12 +19,35 @@ namespace TaF_Redis.Services.MutalMethods
 {
     public static class AuxiliaryContentMethods
     {
-        public async static Task SaveContentToRedisDatabase(IDatabase _redis, Types.ContentType contentType, object content, Guid contentId, string keyForSet)
+        public async static Task CacheContent(IDatabase _redis, Types.ContentType contentType, object content, Guid contentId, string keyForSet)
         {
-            var contentHashEntry = HashDataParser.ToHashEntries(content);
-            var contentHashKey = KeyGenerator.CreateKeyForContent(contentType, contentId);
-            await _redis.HashSetAsync(contentHashKey, contentHashEntry);
-            await _redis.SetAddAsync(keyForSet, contentHashKey);
+            var contentHash_Key = KeyGenerator.CreateKeyForContent(contentType, contentId);
+            if (await _redis.KeyExistsAsync(contentHash_Key))
+                await IncrementUsageCounterOfContent(_redis, contentHash_Key);
+            else
+            {
+                var contentHash_Entry = HashDataParser.ToHashEntries(content);
+                await _redis.HashSetAsync(contentHash_Key, contentHash_Entry);
+                await AppendUsageCounterOfContentField(_redis, contentHash_Key);
+            }
+            await _redis.SetAddAsync(keyForSet, contentHash_Key);
+        }
+
+        public async static Task AppendUsageCounterOfContentField(IDatabase _redis, string hashKey)
+        {
+            await _redis.HashSetAsync(hashKey, new RedisValue("UsageCounter"), new RedisValue("1"));
+        }
+
+        public async static Task IncrementUsageCounterOfContent(IDatabase _redis, string hashKey)
+        {
+            await _redis.HashIncrementAsync(hashKey, new RedisValue("UsageCounter"));
+        }
+
+        public async static Task DecrementUsageCounterOfContent(IDatabase _redis, string hashKey)
+        {
+            var counterValue = await _redis.HashDecrementAsync(hashKey, new RedisValue("UsageCounter"));
+            if (counterValue == 0)
+                await _redis.KeyDeleteAsync(hashKey);
         }
 
         public async static Task<List<T>> GetContentFromHash<T>(IDatabase _redis, string[] keys)
@@ -35,7 +59,8 @@ namespace TaF_Redis.Services.MutalMethods
                 foreach (string key in keys)
                 {
                     var contentHashEntry = await _redis.HashGetAllAsync(key);
-                    contents.Add(HashDataParser.ConvertFromRedis<T>(contentHashEntry));
+                    if(contentHashEntry.Length > 0)
+                        contents.Add(HashDataParser.ConvertFromRedis<T>(contentHashEntry));
                 }
                 return contents;
             }
@@ -70,6 +95,20 @@ namespace TaF_Redis.Services.MutalMethods
                 return await readerService.GetReadLaterBlogs(username, 5);
             }
         }
+
+       
+        public static async Task RemoveCache(IDatabase _redis, string setKey)
+        {
+            var contentHashKeys = await _redis.SetMembersAsync(setKey);
+            foreach(var content in  contentHashKeys)
+            {
+               await DecrementUsageCounterOfContent(_redis, content.ToString());
+            }
+
+            await _redis.KeyDeleteAsync(setKey);
+        }
+
+        
     }
 
     

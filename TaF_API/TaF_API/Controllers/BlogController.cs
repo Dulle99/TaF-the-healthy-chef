@@ -12,6 +12,7 @@ using TaF_Neo4j.DTOs.Rate;
 using Microsoft.AspNetCore.Authorization;
 using StackExchange.Redis;
 using TaF_Redis.Services.User;
+using TaF_Redis.Services.Content;
 
 namespace TaF_WebAPI.Controllers
 {
@@ -21,12 +22,14 @@ namespace TaF_WebAPI.Controllers
     {
         private IBlogService _blogService;
         private IUserServiceRedis _userServiceRedis;
+        private IContentServiceRedis _contentServiceRedis;
 
 
         public BlogController(IGraphClient client, IConnectionMultiplexer redis)
         {
             _blogService = new BlogService(client);
             _userServiceRedis = new UserServiceRedis(redis, client);
+            _contentServiceRedis = new ContentServiceRedis(redis, client);
         }
 
         [HttpPost]
@@ -131,7 +134,10 @@ namespace TaF_WebAPI.Controllers
         public async Task<IActionResult> DeleteBlog(Guid blogId)
         {
             if (await this._blogService.DeleteBlog(blogId))
+            {
+                await this._contentServiceRedis.RemoveContentFromCache(TaF_Redis.Types.ContentType.blog, blogId);
                 return Ok();
+            }
             else
                 return BadRequest();
         }
