@@ -91,7 +91,8 @@ namespace TaF_WebAPI.Controllers
         [Route("GetRecommendedCookingRecepies")]
         public async Task<IActionResult> GetRecommendedPreviewCookingRecepies()
         {
-            return new JsonResult(await this._cookingRecepieService.GetRecommendedCookingRecepies());
+            return new JsonResult(await this._contentServiceRedis.GetCachedRecomendedCookingRecepies());
+            //return new JsonResult(await this._cookingRecepieService.GetRecommendedCookingRecepies());
         }
 
         [HttpGet]
@@ -128,7 +129,10 @@ namespace TaF_WebAPI.Controllers
         public async Task<IActionResult> UpdateCookingRecepie([FromForm] CookingRecepieUpdateDTO cookingRecepieDTO, Guid cookingRecepieId)
         {
             if (await this._cookingRecepieService.UpdateCookingRecepie(cookingRecepieId, cookingRecepieDTO))
+            {
+                await this._contentServiceRedis.UpdateContent(TaF_Redis.Types.ContentType.cookingRecepie, cookingRecepieId);
                 return Ok();
+            }
             else
                 return BadRequest();
         }

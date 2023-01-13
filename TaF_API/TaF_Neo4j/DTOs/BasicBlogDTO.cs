@@ -17,7 +17,7 @@ namespace TaF_Neo4j.DTOs
 
         public int ReadingTime { get; set; }
 
-        public IFormFile BlogPicture { get; set; }
+        public IFormFile? BlogPicture { get; set; }
 
         #endregion Fields
 

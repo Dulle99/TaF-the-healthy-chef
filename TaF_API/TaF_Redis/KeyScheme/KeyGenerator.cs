@@ -9,6 +9,17 @@ namespace TaF_Redis.KeyScheme
 {
     public static class KeyGenerator
     {
+
+        public static string CreateKeyForRecomendedCookingRecepies()
+        {
+            return "recomendedCookingRecepies:";            
+        }
+
+        public static string CreateKeyForRecomendedBlogs()
+        {
+            return "recomendedBlogs:";
+        }
+
         public static string CreateKeyForAuthorPersonalContent(string username, ContentType contentType)
         {
             string typeOfConent = TypeResolver.ResolveContentType(contentType);

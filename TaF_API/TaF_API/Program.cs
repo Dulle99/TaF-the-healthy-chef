@@ -4,6 +4,9 @@ using Microsoft.OpenApi.Models;
 using Neo4jClient;
 using StackExchange.Redis;
 using System.Text;
+using Quartz;
+using TaF_Neo4j.Services.CookingRecepie;
+using TaF_API.ScheduledJob;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,11 +61,44 @@ graphClient.ConnectAsync();
 
 var multiplexer = ConnectionMultiplexer.Connect("localhost");
 
-
 builder.Services.AddSingleton<IGraphClient, GraphClient>(_ => graphClient);
 builder.Services.AddSingleton<IConnectionMultiplexer>(multiplexer);
 
 #endregion ConnectingToDatabase's
+
+#region ScheduledJobs
+
+IDictionary<string, object> databasesClients = new Dictionary<string, object>
+{
+    { "neo4jClient", graphClient },
+    { "redisMultiplexer", multiplexer }
+};
+
+builder.Services.AddQuartz(q =>
+{
+    q.UseMicrosoftDependencyInjectionScopedJobFactory();
+    var jobKey = new JobKey("CacheRecomendedContent");
+    q.AddJob<CacheRecomendedContent>(opts => {
+        opts.WithIdentity(jobKey);
+        opts.SetJobData(new JobDataMap(databasesClients));
+        });
+
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("CacheRecomendedContent-Trigger")
+        .StartAt(DateTimeOffset.Now));
+
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("CacheRecomendedContent-ScheduledTrigger")
+        //.WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(0, 20))
+        .WithCronSchedule("0 0 */3 ? * *") //occurs on every 3hr
+        
+    );
+});
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+
+#endregion ScheduledJobs
 
 builder.Services.AddAuthentication(options =>
 {
@@ -110,3 +146,4 @@ app.UseEndpoints(endpoints =>
 });
 
 app.Run();
+

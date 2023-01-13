@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using TaF_Neo4j.DTOs.BlogDTO;
 using TaF_Neo4j.DTOs.CookingRecepieDTO;
 using TaF_Neo4j.Models;
+using TaF_Neo4j.Services.Blog;
+using TaF_Neo4j.Services.CookingRecepie;
 using TaF_Neo4j.Services.User.Author;
 using TaF_Neo4j.Services.User.Reader;
 using TaF_Redis.KeyScheme;
@@ -19,6 +21,9 @@ namespace TaF_Redis.Services.MutalMethods
 {
     public static class AuxiliaryContentMethods
     {
+
+        #region CreareOrUpdateCache
+
         public async static Task CacheContent(IDatabase _redis, Types.ContentType contentType, object content, Guid contentId, string keyForSet)
         {
             var contentHash_Key = KeyGenerator.CreateKeyForContent(contentType, contentId);
@@ -30,6 +35,7 @@ namespace TaF_Redis.Services.MutalMethods
                 await _redis.HashSetAsync(contentHash_Key, contentHash_Entry);
                 await AppendUsageCounterOfContentField(_redis, contentHash_Key);
             }
+
             await _redis.SetAddAsync(keyForSet, contentHash_Key);
         }
 
@@ -49,6 +55,10 @@ namespace TaF_Redis.Services.MutalMethods
             if (counterValue == 0)
                 await _redis.KeyDeleteAsync(hashKey);
         }
+
+        #endregion CreareOrUpdateCache
+
+        #region GetCache
 
         public async static Task<List<T>> GetContentFromHash<T>(IDatabase _redis, string[] keys)
         {
@@ -96,7 +106,19 @@ namespace TaF_Redis.Services.MutalMethods
             }
         }
 
-       
+        public async static Task<object> GetContentPreviewFromDatabase(IGraphClient client,Types.ContentType contentType, Guid contentId)
+        {
+            if(contentType == Types.ContentType.cookingRecepie)
+                return await CookingRecepieServiceAuxiliaryMethods.GetCookingRecepiePreview(client, contentId);
+            else
+                return await BlogServiceAuxiliaryMethods.GetBlogPreview(client, contentId);
+        }
+
+        #endregion GetCache
+
+        #region RemoveCache
+
+
         public static async Task RemoveCache(IDatabase _redis, string setKey)
         {
             var contentHashKeys = await _redis.SetMembersAsync(setKey);
@@ -108,8 +130,10 @@ namespace TaF_Redis.Services.MutalMethods
             await _redis.KeyDeleteAsync(setKey);
         }
 
-        
+        #endregion RemoveCache
+
+
     }
 
-    
+
 }

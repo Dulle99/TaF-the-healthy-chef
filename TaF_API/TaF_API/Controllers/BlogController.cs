@@ -84,7 +84,8 @@ namespace TaF_WebAPI.Controllers
         [Route("GetRecommendedBlogs")]
         public async Task<IActionResult> GetRecommendedPreviewBlogs()
         {
-            return new JsonResult(await this._blogService.GetRecommendedBlogs());
+            return new JsonResult(await this._contentServiceRedis.GetCachedRecomendedBlogs());
+            //return new JsonResult(await this._blogService.GetRecommendedBlogs());
         }
 
         [HttpGet]
@@ -121,7 +122,10 @@ namespace TaF_WebAPI.Controllers
         public async Task<IActionResult> UpdateBlog([FromForm] BasicBlogDTO blog, Guid blogId)
         {
             if (await this._blogService.UpdateBlog(blogId, blog))
+            {
+                await this._contentServiceRedis.UpdateContent(TaF_Redis.Types.ContentType.blog, blogId);
                 return Ok();
+            }
             else
                 return BadRequest();
         }

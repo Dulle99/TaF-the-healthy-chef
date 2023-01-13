@@ -25,7 +25,7 @@ function CookingRecepieForm(prop: ICookingRecepie | any) {
     const [areFieldsEmpthy, setAreFieldsEmpthyFlag] = useState(false);
 
     function validateFields(): boolean {
-        if (cookingRecepieTitle === "" || description === "" || preparationTime ==="" || parseInt(preparationTime)=== NaN
+        if (cookingRecepieTitle === "" || description === "" || preparationTime ==="" || Number.isNaN(parseInt(preparationTime))
         || parseInt(preparationTime) <= 0 || formData === undefined) {
             setAreFieldsEmpthyFlag(true);
             return true;
@@ -45,7 +45,7 @@ function CookingRecepieForm(prop: ICookingRecepie | any) {
     }
     const handleCookingRecepiePrepratinTimeChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
         const number = parseInt(e.currentTarget.value); 
-        if (number != NaN) {
+        if (!Number.isNaN(number)) {
             setCookingRecepiePreparationTime(e.currentTarget.value);
         }
         else{
