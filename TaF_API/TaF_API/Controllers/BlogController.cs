@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using StackExchange.Redis;
 using TaF_Redis.Services.User;
 using TaF_Redis.Services.Content;
+using TaF_Neo4j.DTOs.BlogDTO;
 
 namespace TaF_WebAPI.Controllers
 {
@@ -39,7 +40,11 @@ namespace TaF_WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateBlog([FromForm] BasicBlogDTO blogDTO, string authorUsername)
         {
-            if (await this._blogService.CreateBlog(authorUsername, blogDTO))
+            if (await this._contentServiceRedis.ContentContainBadWord(blogDTO.BlogContent) || 
+                await this._contentServiceRedis.ContentContainBadWord(blogDTO.BlogTitle))
+                return BadRequest("BadWord");
+
+            if(await this._blogService.CreateBlog(authorUsername, blogDTO))
                 return Ok();
             else
                 return BadRequest();
@@ -121,6 +126,10 @@ namespace TaF_WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateBlog([FromForm] BasicBlogDTO blog, Guid blogId)
         {
+            if (await this._contentServiceRedis.ContentContainBadWord(blog.BlogContent) ||
+                await this._contentServiceRedis.ContentContainBadWord(blog.BlogTitle))
+                return BadRequest("BadWord");
+
             if (await this._blogService.UpdateBlog(blogId, blog))
             {
                 await this._contentServiceRedis.UpdateContent(TaF_Redis.Types.ContentType.blog, blogId);

@@ -15,9 +15,10 @@ function BlogForm(prop: IBlogUpdate | any) {
     const [formData, setFormData] = useState<FormData>();
     const [blogCreated, setBlogCreatedFlag] = useState(false);
     const [areFieldsEmpthy, setAreFieldsEmpthyFlag] = useState(false);
+    const [badRequestFlag, setBadRequestFlag] = useState(false);
 
     function validateFields(): boolean {
-        if (blogTitle === "" || blogContent === "" || readingTime === "" || parseInt(readingTime) === NaN || parseInt(readingTime) <= 0 || formData === undefined) {
+        if (blogTitle === "" || blogContent === "" || readingTime === "" || Number.isNaN(parseInt(readingTime)) || parseInt(readingTime) <= 0 || formData === undefined) {
             setAreFieldsEmpthyFlag(true);
             return true;
         }
@@ -32,12 +33,13 @@ function BlogForm(prop: IBlogUpdate | any) {
 
     }
     const handleBlogContentChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+        console.log(e.currentTarget.value);
         setBlogContent(e.currentTarget.value);
 
     }
     const handleBlogReadingTimeChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
         const numberValue = parseInt(e.currentTarget.value);
-        if(numberValue != NaN){
+        if(!Number.isNaN(numberValue)){
             setReadingTime(e.currentTarget.value);
         }
         else{
@@ -61,12 +63,16 @@ function BlogForm(prop: IBlogUpdate | any) {
     }
 
     const handleCreateBlogClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
-        console.log(readingTime);
         if (validateFields() === false) {
             let form = new FormData();
             if (formData != undefined) {
                 form = formData;
             }
+            if (badRequestFlag){
+                form.delete('blogTitle');
+                form.delete('blogContent');
+            }
+            
             form.append('blogTitle', blogTitle);
             form.append('blogContent', blogContent);
             form.append('readingTime', readingTime.toString());
@@ -83,7 +89,7 @@ function BlogForm(prop: IBlogUpdate | any) {
                             setBlogCreatedFlag(true);
                         }
                     })
-                    .catch(() => { });
+                    .catch(() => { setBadRequestFlag(true) });
 
             }
             else {
@@ -98,7 +104,9 @@ function BlogForm(prop: IBlogUpdate | any) {
                             setBlogCreatedFlag(true);
                         }
                     })
-                    .catch(() => { });
+                    .catch(() => { 
+                        setBadRequestFlag(true)
+                    });
             }
         }
 
@@ -237,6 +245,13 @@ function BlogForm(prop: IBlogUpdate | any) {
                     <Alert severity="warning" sx={{ mt: 2 }}>
                         <AlertTitle>Upozorenje</AlertTitle>
                         Morate popuniti sva relevantna polja i uneti sliku!
+                    </Alert>
+                    : ""}
+
+                {badRequestFlag === true ?
+                    <Alert severity="warning" sx={{ mt: 2 }}>
+                        <AlertTitle>Upozorenje</AlertTitle>
+                        Proverite da li naslov ili sadrzaj bloga sadrze neprimerene reci!
                     </Alert>
                     : ""}
 

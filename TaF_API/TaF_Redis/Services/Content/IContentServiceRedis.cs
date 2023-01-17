@@ -19,5 +19,6 @@ namespace TaF_Redis.Services.Content
 
         public Task UpdateContent(Types.ContentType contentType, Guid contentId);
 
+        public Task<bool> ContentContainBadWord(string content);
     }
 }

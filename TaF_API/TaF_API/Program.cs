@@ -10,10 +10,9 @@ using TaF_API.ScheduledJob;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>
@@ -77,24 +76,36 @@ IDictionary<string, object> databasesClients = new Dictionary<string, object>
 builder.Services.AddQuartz(q =>
 {
     q.UseMicrosoftDependencyInjectionScopedJobFactory();
-    var jobKey = new JobKey("CacheRecomendedContent");
+    var CacheRecomendedContentJobKey = new JobKey("CacheRecomendedContent");
+    var CacheBadWordsJobKey = new JobKey("CacheBadWords");
+
     q.AddJob<CacheRecomendedContent>(opts => {
-        opts.WithIdentity(jobKey);
+        opts.WithIdentity(CacheRecomendedContentJobKey);
         opts.SetJobData(new JobDataMap(databasesClients));
         });
 
     q.AddTrigger(opts => opts
-        .ForJob(jobKey)
+        .ForJob(CacheRecomendedContentJobKey)
         .WithIdentity("CacheRecomendedContent-Trigger")
         .StartAt(DateTimeOffset.Now));
 
+
+q.AddTrigger(opts => opts
+    .ForJob(CacheRecomendedContentJobKey)
+    .WithIdentity("CacheRecomendedContent-ScheduledTrigger")
+    //.WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(0, 20))
+    .WithCronSchedule("0 0 */3 ? * *")); //occurs on every 3hr
+
+    q.AddJob<CacheBadWordList>(opts => {
+        opts.WithIdentity(CacheBadWordsJobKey);
+        opts.SetJobData(new JobDataMap(databasesClients));
+    });
+
     q.AddTrigger(opts => opts
-        .ForJob(jobKey)
-        .WithIdentity("CacheRecomendedContent-ScheduledTrigger")
-        //.WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(0, 20))
-        .WithCronSchedule("0 0 */3 ? * *") //occurs on every 3hr
-        
-    );
+        .ForJob(CacheBadWordsJobKey)
+        .WithIdentity("CacheBadWords-Trigger")
+        .StartAt(DateTimeOffset.Now));
+
 });
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 

@@ -148,6 +148,7 @@ function CookingRecepieForm(prop: ICookingRecepie | any) {
                         if (response.status === 200) {
                             setRecepieCreatedFlag(true);
                         }
+                       
                     })
                     .catch(() => { });
             }

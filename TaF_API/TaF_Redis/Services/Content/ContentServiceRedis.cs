@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TaF_Neo4j.DTOs.BlogDTO;
 using TaF_Neo4j.DTOs.CookingRecepieDTO;
@@ -38,6 +39,7 @@ namespace TaF_Redis.Services.Content
             }
             catch (Exception ex) { }
         }
+
 
         private async Task CacheRecomendedCookingRecepies()
         {
@@ -140,6 +142,50 @@ namespace TaF_Redis.Services.Content
         }
 
         #endregion UpdateCachedContent
+
+        #region FilterContent
+
+        public async Task<bool> ContentContainBadWord(string content)
+        {
+            try
+            {
+                var contentTemporaryKey = "temporaryContentKey:" + Guid.NewGuid().ToString();
+                var words = GetWords(content);
+                foreach(var word in words) 
+                {
+                    await this._redis.SetAddAsync(contentTemporaryKey, word);
+                }
+             
+                var result = await this._redis.SetCombineAsync(SetOperation.Intersect, "badWords:", contentTemporaryKey);
+                await this._redis.KeyDeleteAsync(contentTemporaryKey);
+
+                if (result.Length > 0)
+                    return true;
+                else
+                    return false;
+            }
+            catch(Exception ex) { return false; }
+        }
+
+        public string[] GetWords(string content)
+        {
+            var filteredContent = FilterContentFromPunction(content);
+            return SplitContentIntoWords(filteredContent);
+        }
+
+        public string FilterContentFromPunction(string content)
+        {
+           
+            var filteredContentFromInterpunction = Regex.Replace(content, @"[^\w\s\s+/g]" , string.Empty);
+            return filteredContentFromInterpunction.ToLower();
+        }
+
+        public string[] SplitContentIntoWords(string content)
+        {
+            return content.Split(' ');
+        }
+
+        #endregion FilterContent
 
     }
 }
