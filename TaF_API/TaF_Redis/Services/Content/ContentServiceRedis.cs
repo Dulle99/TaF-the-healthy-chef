@@ -176,7 +176,7 @@ namespace TaF_Redis.Services.Content
         public string FilterContentFromPunction(string content)
         {
            
-            var filteredContentFromInterpunction = Regex.Replace(content, @"[^\w\s\s+/g]" , string.Empty);
+            var filteredContentFromInterpunction = Regex.Replace(content, @"[^\w\s]" , string.Empty);
             return filteredContentFromInterpunction.ToLower();
         }
 
