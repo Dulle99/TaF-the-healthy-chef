@@ -23,6 +23,7 @@ function CookingRecepieForm(prop: ICookingRecepie | any) {
     const [formData, setFormData] = useState<FormData>();
     const [recepieCreated, setRecepieCreatedFlag] = useState(false);
     const [areFieldsEmpthy, setAreFieldsEmpthyFlag] = useState(false);
+    const [badRequestFlag, setBadRequestFlag] = useState(false);
 
     function validateFields(): boolean {
         if (cookingRecepieTitle === "" || description === "" || preparationTime ==="" || Number.isNaN(parseInt(preparationTime))
@@ -68,8 +69,9 @@ function CookingRecepieForm(prop: ICookingRecepie | any) {
     }
 
     function pushStepInFoodPreparationToArray(step: IStepInFoodPreparation): void {
-        if (step.ordinalNumberOfStep && step.stepDescription !== "")
-            setStepInFoodPreparation([...stepsInFoodPreparation, step]);
+        if (step.ordinalNumberOfStep && step.stepDescription !== ""){
+            setStepInFoodPreparation(stepsInFoodPreparation => [...stepsInFoodPreparation, step]);
+        }
     }
 
     function pushIngredientToArray(ingredient: IIngredient): void {
@@ -85,14 +87,23 @@ function CookingRecepieForm(prop: ICookingRecepie | any) {
     const buttonHandlerRemoveStep = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
         removeStepInFoodPreparationFromArray(parseInt(event.currentTarget.id, 10));
+        
     }
 
     function removeStepInFoodPreparationFromArray(stepIndex: number): void {
         setStepInFoodPreparation((steps) => steps.filter((step, ind) => ind !== stepIndex));
+        if(formData !== undefined){
+            formData.delete(`stepsInFoodPreparation[${stepIndex}].ordinalNumberOfStep`);
+            formData.delete(`stepsInFoodPreparation[${stepIndex}].stepDescription`);
+            }
     }
 
     function removeIngredientForFoodPreparationFromArray(ingredientIndex: number): void {
         setIngredientsForFoodPreparation((ingredients) => ingredients.filter((ingredient, ind) => ind !== ingredientIndex));
+        if(formData !== undefined){
+        formData.delete(`ingredients[${ingredientIndex}].ordinalNumberOfIngredient`);
+        formData.delete(`ingredients[${ingredientIndex}].Ingredient`);
+        }
     }
 
 
@@ -106,6 +117,12 @@ function CookingRecepieForm(prop: ICookingRecepie | any) {
             let form = new FormData();
             if (formData != undefined) {
                 form = formData;
+            }
+            if (badRequestFlag){
+                console.log(form);
+                form.delete('cookingRecepieTitle');
+                form.delete('description');
+
             }
             form.append('cookingRecepieTitle', cookingRecepieTitle);
             form.append('description', description);
@@ -134,7 +151,7 @@ function CookingRecepieForm(prop: ICookingRecepie | any) {
                             setRecepieCreatedFlag(true);
                         }
                     })
-                    .catch(() => { });
+                    .catch(() => { setBadRequestFlag(true); });
 
             }
             else {
@@ -150,7 +167,7 @@ function CookingRecepieForm(prop: ICookingRecepie | any) {
                         }
                        
                     })
-                    .catch(() => { });
+                    .catch(() => { setBadRequestFlag(true) });
             }
         }
 
@@ -375,6 +392,13 @@ function CookingRecepieForm(prop: ICookingRecepie | any) {
                     <Alert severity="warning" sx={{ mt: 2 }}>
                         <AlertTitle>Upozorenje</AlertTitle>
                         Morate popuniti sva relevantna polja i uneti sliku!
+                    </Alert>
+                    : ""}
+
+                {badRequestFlag === true ?
+                    <Alert severity="warning" sx={{ mt: 2 }}>
+                        <AlertTitle>Upozorenje</AlertTitle>
+                        Proverite da li naslov ili sadrzaj bloga sadrze neprimerene reci!
                     </Alert>
                     : ""}
 

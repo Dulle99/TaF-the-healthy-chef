@@ -19,7 +19,7 @@ namespace TaF_Neo4j.Services.CookingRecepie
         Task<List<CookingRecepiePreviewDTO>> GetRecommendedCookingRecepies();
         Task<List<CookingRecepiePreviewDTO>> GetPreviewCookingRecepiesByAuthor(string authorUsername, int numberOfCookingRecepiesToGet);
         Task<CookingRecepieDTO> GetCookingRecepie(Guid cookingRecepieId);
-        Task<bool> UpdateCookingRecepie(Guid cookingRecepieId, CookingRecepieUpdateDTO cookingRecepieDTO);
+        Task<bool> UpdateCookingRecepie(Guid cookingRecepieId, BasicCookingRecepieDTO cookingRecepieDTO);
         Task<bool> UpdateStepsInFoodPreparation(Guid cookingRecepieId, List<StepInFoodPreparationDTO> stepsDTO);
         Task<bool> DeleteCookingRecepie(Guid cookingRecepieId);
         Task<bool> AddCommentToTheCookingRecepie(BasicCommentDTO commentDTO);

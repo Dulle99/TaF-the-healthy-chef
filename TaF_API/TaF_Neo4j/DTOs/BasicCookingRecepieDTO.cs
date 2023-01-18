@@ -20,7 +20,7 @@ namespace TaF_Neo4j.DTOs
 
         public int PreparationTime { get; set; }
 
-        public IFormFile CookingRecepiePicture { get; set; }
+        public IFormFile? CookingRecepiePicture { get; set; }
 
         public List<StepInFoodPreparationDTO> StepsInFoodPreparation { get; set; }
 

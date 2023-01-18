@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TaF_Neo4j.DTOs;
 using TaF_Neo4j.DTOs.BlogDTO;
 using TaF_Neo4j.DTOs.CookingRecepieDTO;
 
@@ -19,6 +20,8 @@ namespace TaF_Redis.Services.Content
 
         public Task UpdateContent(Types.ContentType contentType, Guid contentId);
 
-        public Task<bool> ContentContainBadWord(string content);
+        public Task<bool> CheckForBadWords(string contentSample);
+        public Task<bool> CheckForBadWordsInCookingRecepie(BasicCookingRecepieDTO cookingRecepie);
+       
     }
 }

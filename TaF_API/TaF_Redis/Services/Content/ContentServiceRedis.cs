@@ -6,8 +6,10 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using TaF_Neo4j.DTOs;
 using TaF_Neo4j.DTOs.BlogDTO;
 using TaF_Neo4j.DTOs.CookingRecepieDTO;
+using TaF_Neo4j.Models;
 using TaF_Neo4j.Services.Blog;
 using TaF_Neo4j.Services.CookingRecepie;
 using TaF_Redis.KeyScheme;
@@ -145,12 +147,12 @@ namespace TaF_Redis.Services.Content
 
         #region FilterContent
 
-        public async Task<bool> ContentContainBadWord(string content)
+        public async Task<bool> CheckForBadWords(string contentSample)
         {
             try
             {
                 var contentTemporaryKey = "temporaryContentKey:" + Guid.NewGuid().ToString();
-                var words = GetWords(content);
+                var words = AuxiliaryContentMethods.GetWords(contentSample);
                 foreach(var word in words) 
                 {
                     await this._redis.SetAddAsync(contentTemporaryKey, word);
@@ -167,23 +169,26 @@ namespace TaF_Redis.Services.Content
             catch(Exception ex) { return false; }
         }
 
-        public string[] GetWords(string content)
+        public async Task<bool> CheckForBadWordsInCookingRecepie(BasicCookingRecepieDTO cookingRecepie)
         {
-            var filteredContent = FilterContentFromPunction(content);
-            return SplitContentIntoWords(filteredContent);
+            try
+            {
+                if(await this.CheckForBadWords(cookingRecepie.CookingRecepieTitle))
+                    return true;
+                else if (await this.CheckForBadWords(cookingRecepie.Description))
+                    return true;
+                else if(await this.CheckForBadWords(AuxiliaryContentMethods.GetMergedStepsInFoodPrepration(cookingRecepie.StepsInFoodPreparation)))
+                    return true;
+                else if(await this.CheckForBadWords(AuxiliaryContentMethods.GetMergedIngredients(cookingRecepie.Ingredients)))
+                    return true;
+                else
+                    return false;
+
+            }
+            catch(Exception ex) { return true; }
         }
 
-        public string FilterContentFromPunction(string content)
-        {
-           
-            var filteredContentFromInterpunction = Regex.Replace(content, @"[^\w\s]" , string.Empty);
-            return filteredContentFromInterpunction.ToLower();
-        }
-
-        public string[] SplitContentIntoWords(string content)
-        {
-            return content.Split(' ');
-        }
+        
 
         #endregion FilterContent
 

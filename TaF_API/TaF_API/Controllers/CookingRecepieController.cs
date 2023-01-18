@@ -39,6 +39,9 @@ namespace TaF_WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateCookigRecepie([FromForm] BasicCookingRecepieDTO cookingRecepieDTO, string authorUsername)
         {
+            if (await this._contentServiceRedis.CheckForBadWordsInCookingRecepie(cookingRecepieDTO))
+                return BadRequest();
+
             if (await this._cookingRecepieService.CreateCookingRecepie(authorUsername, cookingRecepieDTO))
                 return Ok();
             else
@@ -126,8 +129,11 @@ namespace TaF_WebAPI.Controllers
         [Route("UpdateCookingRecepie/{cookingRecepieId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdateCookingRecepie([FromForm] CookingRecepieUpdateDTO cookingRecepieDTO, Guid cookingRecepieId)
+        public async Task<IActionResult> UpdateCookingRecepie([FromForm] BasicCookingRecepieDTO cookingRecepieDTO, Guid cookingRecepieId)
         {
+            if (await this._contentServiceRedis.CheckForBadWordsInCookingRecepie(cookingRecepieDTO))
+                return BadRequest();
+
             if (await this._cookingRecepieService.UpdateCookingRecepie(cookingRecepieId, cookingRecepieDTO))
             {
                 await this._contentServiceRedis.UpdateContent(TaF_Redis.Types.ContentType.cookingRecepie, cookingRecepieId);

@@ -253,7 +253,7 @@ namespace TaF_Neo4j.Services.CookingRecepie
         }
 
         
-        public async Task<bool> UpdateCookingRecepie(Guid cookingRecepieId, CookingRecepieUpdateDTO cookingRecepieDTO)
+        public async Task<bool> UpdateCookingRecepie(Guid cookingRecepieId, BasicCookingRecepieDTO cookingRecepieDTO)
         {
             var cookingRecepie = await this.GetCookingRecepie(cookingRecepieId);
             if (cookingRecepie != null)

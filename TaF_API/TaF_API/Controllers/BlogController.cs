@@ -40,9 +40,9 @@ namespace TaF_WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateBlog([FromForm] BasicBlogDTO blogDTO, string authorUsername)
         {
-            if (await this._contentServiceRedis.ContentContainBadWord(blogDTO.BlogContent) || 
-                await this._contentServiceRedis.ContentContainBadWord(blogDTO.BlogTitle))
-                return BadRequest("BadWord");
+            if (await this._contentServiceRedis.CheckForBadWords(blogDTO.BlogContent) || 
+                await this._contentServiceRedis.CheckForBadWords(blogDTO.BlogTitle))
+                return BadRequest();
 
             if(await this._blogService.CreateBlog(authorUsername, blogDTO))
                 return Ok();
@@ -126,9 +126,9 @@ namespace TaF_WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateBlog([FromForm] BasicBlogDTO blog, Guid blogId)
         {
-            if (await this._contentServiceRedis.ContentContainBadWord(blog.BlogContent) ||
-                await this._contentServiceRedis.ContentContainBadWord(blog.BlogTitle))
-                return BadRequest("BadWord");
+            if (await this._contentServiceRedis.CheckForBadWords(blog.BlogContent) ||
+                await this._contentServiceRedis.CheckForBadWords(blog.BlogTitle))
+                return BadRequest();
 
             if (await this._blogService.UpdateBlog(blogId, blog))
             {

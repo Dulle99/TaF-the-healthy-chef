@@ -3,11 +3,15 @@ using Neo4jClient;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Mime;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using TaF_Neo4j.DTOs;
 using TaF_Neo4j.DTOs.BlogDTO;
 using TaF_Neo4j.DTOs.CookingRecepieDTO;
 using TaF_Neo4j.Models;
@@ -132,7 +136,59 @@ namespace TaF_Redis.Services.MutalMethods
 
         #endregion RemoveCache
 
+        #region FilteringHelpMethods
 
+        public static string GetMergedStepsInFoodPrepration(List<StepInFoodPreparationDTO> stepsInFoodPreparation)
+        {
+                if (stepsInFoodPreparation.Count > 0)
+                {
+                    var steps = stepsInFoodPreparation[0].StepDescription;
+                    for (int i = 1; i <= stepsInFoodPreparation.Count - 1; i++)
+                        steps = MergeStrings(steps, stepsInFoodPreparation[i].StepDescription);
+
+                    return steps;
+                }
+                else
+                    return String.Empty;
+        }
+
+        public static string GetMergedIngredients(List<IngredientForCookingRecepieDTO> ingredientsOfCookingRecepie)
+        {
+            if(ingredientsOfCookingRecepie.Count > 0)
+            {
+                var ingredients = ingredientsOfCookingRecepie[0].Ingredient;
+                for(int i = 1; i <= ingredientsOfCookingRecepie.Count - 1; i++)
+                    ingredients = MergeStrings(ingredients, ingredientsOfCookingRecepie[i].Ingredient);
+
+                return ingredients;
+            }
+            else
+                return String.Empty;
+        }
+
+        public static string[] GetWords(string content)
+        {
+            var filteredContent = FilterContentFromPunction(content);
+            return SplitContentIntoWords(filteredContent);
+        }
+
+        public static string FilterContentFromPunction(string content)
+        {
+            var filteredContentFromMultipleSpaces = Regex.Replace(content, @"\s+", " ").Trim();
+            var filteredContentFromInterpunction = Regex.Replace(filteredContentFromMultipleSpaces, @"[^\w\s]", string.Empty);
+            return filteredContentFromInterpunction.ToLower();
+        }
+
+        public static string[] SplitContentIntoWords(string content)
+        {
+            return content.Split(' ');
+        }
+
+        public static string MergeStrings(string mainString, string additionalString)
+        {
+            return mainString + " " + additionalString;
+        }
+        #endregion FilteringHelpMethods
     }
 
 
