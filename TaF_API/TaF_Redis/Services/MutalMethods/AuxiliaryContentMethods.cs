@@ -28,7 +28,7 @@ namespace TaF_Redis.Services.MutalMethods
 
         #region CreareOrUpdateCache
 
-        public async static Task CacheContent(IDatabase _redis, Types.ContentType contentType, object content, Guid contentId, string keyForSet)
+        public async static Task CacheContent(IDatabase _redis, Types.ContentType contentType, object content, Guid contentId, string keyForList, bool list_pushAtTail = true)
         {
             var contentHash_Key = KeyGenerator.CreateKeyForContent(contentType, contentId);
             if (await _redis.KeyExistsAsync(contentHash_Key))
@@ -40,7 +40,11 @@ namespace TaF_Redis.Services.MutalMethods
                 await AppendUsageCounterOfContentField(_redis, contentHash_Key);
             }
 
-            await _redis.SetAddAsync(keyForSet, contentHash_Key);
+            if(list_pushAtTail)
+                await _redis.ListRightPushAsync(keyForList, contentHash_Key);
+            else
+                await _redis.ListLeftPushAsync(keyForList, contentHash_Key);
+            //await _redis.SetAddAsync(keyForSet, contentHash_Key);
         }
 
         public async static Task AppendUsageCounterOfContentField(IDatabase _redis, string hashKey)
@@ -123,15 +127,16 @@ namespace TaF_Redis.Services.MutalMethods
         #region RemoveCache
 
 
-        public static async Task RemoveCache(IDatabase _redis, string setKey)
+        public static async Task RemoveCache(IDatabase _redis, string listKey)
         {
-            var contentHashKeys = await _redis.SetMembersAsync(setKey);
-            foreach(var content in  contentHashKeys)
+            //var contentHashKeys = await _redis.SetMembersAsync(setKey);
+            var contentHashKeys = await _redis.ListRangeAsync(listKey);
+            foreach (var content in  contentHashKeys)
             {
                await DecrementUsageCounterOfContent(_redis, content.ToString());
             }
 
-            await _redis.KeyDeleteAsync(setKey);
+            await _redis.KeyDeleteAsync(listKey);
         }
 
         #endregion RemoveCache
@@ -190,6 +195,4 @@ namespace TaF_Redis.Services.MutalMethods
         }
         #endregion FilteringHelpMethods
     }
-
-
 }

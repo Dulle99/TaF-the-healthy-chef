@@ -49,12 +49,12 @@ namespace TaF_Redis.Services.Content
             {
                 var _cookingRecepieService = new CookingRecepieService(this._neo4jClient);
                 var recomendedCookingRecepies = await _cookingRecepieService.GetRecommendedCookingRecepies();
-                var recomendedCookingRecepies_SetKey = KeyGenerator.CreateKeyForRecomendedCookingRecepies();
+                var recomendedCookingRecepies_listKey = KeyGenerator.CreateKeyForRecomendedCookingRecepies();
 
                 foreach (var recepie in recomendedCookingRecepies)
                 {
                     await AuxiliaryContentMethods.CacheContent(this._redis, Types.ContentType.cookingRecepie,
-                                                         recepie, recepie.CookingRecepieId, recomendedCookingRecepies_SetKey);
+                                                         recepie, recepie.CookingRecepieId, recomendedCookingRecepies_listKey);
                 }
             }
             catch (Exception ex) { }
@@ -66,11 +66,11 @@ namespace TaF_Redis.Services.Content
             {
                 var _blogServiceRedis = new BlogService(this._neo4jClient);
                 var recomendedBlogs = await _blogServiceRedis.GetRecommendedBlogs();
-                var reomendedBlogs_SetKey = KeyGenerator.CreateKeyForRecomendedBlogs();
+                var reomendedBlogs_listKey = KeyGenerator.CreateKeyForRecomendedBlogs();
 
                 foreach (var blog in recomendedBlogs)
                 {
-                    await AuxiliaryContentMethods.CacheContent(this._redis, Types.ContentType.blog, blog, blog.BlogId, reomendedBlogs_SetKey);
+                    await AuxiliaryContentMethods.CacheContent(this._redis, Types.ContentType.blog, blog, blog.BlogId, reomendedBlogs_listKey);
                 }
             }
             catch (Exception ex) { }
@@ -84,8 +84,9 @@ namespace TaF_Redis.Services.Content
         {
             try
             {
-                var recomendedCookingRecepies_SetKey = KeyGenerator.CreateKeyForRecomendedCookingRecepies();
-                var recomendedCookingRecepies_HashKeys = this._redis.SetMembers(recomendedCookingRecepies_SetKey).ToStringArray();
+                var recomendedCookingRecepies_listKey = KeyGenerator.CreateKeyForRecomendedCookingRecepies();
+                //var recomendedCookingRecepies_HashKeys = this._redis.SetMembers(recomendedCookingRecepies_SetKey).ToStringArray();
+                var recomendedCookingRecepies_HashKeys = this._redis.ListRange(recomendedCookingRecepies_listKey).ToStringArray();
 
                 return await AuxiliaryContentMethods.GetContentFromHash<CookingRecepiePreviewDTO>(this._redis, recomendedCookingRecepies_HashKeys);
             }
@@ -96,8 +97,9 @@ namespace TaF_Redis.Services.Content
         {
             try
             {
-                var recomendedBlogs_SetKey = KeyGenerator.CreateKeyForRecomendedBlogs();
-                var recomendedBlogs_HashKeys =  this._redis.SetMembers(recomendedBlogs_SetKey).ToStringArray();
+                var recomendedBlogs_listKey = KeyGenerator.CreateKeyForRecomendedBlogs();
+                //var recomendedBlogs_HashKeys =  this._redis.SetMembers(recomendedBlogs_SetKey).ToStringArray();
+                var recomendedBlogs_HashKeys = this._redis.ListRange(recomendedBlogs_listKey).ToStringArray();
 
                 return await AuxiliaryContentMethods.GetContentFromHash<BlogPreviewDTO>(this._redis, recomendedBlogs_HashKeys);
             }
