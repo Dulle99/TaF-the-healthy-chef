@@ -14,6 +14,7 @@ using StackExchange.Redis;
 using TaF_Redis.Services.User;
 using TaF_Redis.Services.Content;
 using TaF_Neo4j.DTOs.BlogDTO;
+using System.Net.Mime;
 
 namespace TaF_WebAPI.Controllers
 {
@@ -45,7 +46,10 @@ namespace TaF_WebAPI.Controllers
                 return BadRequest();
 
             if(await this._blogService.CreateBlog(authorUsername, blogDTO))
+            {
+                await this._userServiceRedis.CacheAuthorNewContent(authorUsername, TaF_Redis.Types.ContentType.blog);
                 return Ok();
+            }
             else
                 return BadRequest();
         }
@@ -98,7 +102,7 @@ namespace TaF_WebAPI.Controllers
         [Route("GetBlogsByAuthor/{authorUsername}/{numberOfBlogsToGet}")]
         public async Task<IActionResult> GetPreviewBlogsByAuthor(string authorUsername, int numberOfBlogsToGet)
         {
-            if(numberOfBlogsToGet > 5)
+            if(numberOfBlogsToGet >= 5)
                 return new JsonResult(await this._blogService.GetPreviewBlogsByAuthor(authorUsername, numberOfBlogsToGet));
             else
                 return new JsonResult(await this._userServiceRedis.GetCachedBlogsByAuthor(authorUsername, numberOfBlogsToGet));

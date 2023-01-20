@@ -13,6 +13,7 @@ using TaF_Neo4j.Models;
 using TaF_Neo4j.Services.User.Author;
 using TaF_Neo4j.Services.User.Reader;
 using TaF_Redis.Services.User;
+using TaF_Redis.Types;
 
 namespace TaF_WebAPI.Controllers
 {
@@ -140,14 +141,20 @@ namespace TaF_WebAPI.Controllers
             if (typeOfUser == "Author")
             {
                 if (await this._authorService.AddBlogToReadLater(username, blogId))
+                {
+                    await this._userServiceRedis.CacheUsersNewSavedContent(UserType.Author, username, ContentType.savedBlog);
                     return Ok();
+                }
                 else
                     return BadRequest();
             }
             else
             {
                 if (await this._readerService.AddBlogToReadLater(username, blogId))
+                {
+                    await this._userServiceRedis.CacheUsersNewSavedContent(UserType.Reader, username, ContentType.savedBlog);
                     return Ok();
+                }
                 else
                     return BadRequest();
             }
@@ -164,14 +171,20 @@ namespace TaF_WebAPI.Controllers
             if (typeOfUser == "Author")
             {
                 if (await this._authorService.AddCookingRecepieToReadLater(username, cookingRecepieId))
+                {
+                    await this._userServiceRedis.CacheUsersNewSavedContent(UserType.Author, username, ContentType.cookingRecepie);
                     return Ok();
+                }
                 else
                     return BadRequest();
             }
             else
             {
                 if (await this._readerService.AddCookingRecepieToReadLater(username, cookingRecepieId))
+                {
+                    await this._userServiceRedis.CacheUsersNewSavedContent(UserType.Reader, username, ContentType.cookingRecepie);
                     return Ok();
+                }
                 else
                     return BadRequest();
             }

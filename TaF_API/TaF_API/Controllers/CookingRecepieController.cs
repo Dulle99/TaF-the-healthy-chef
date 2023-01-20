@@ -14,6 +14,7 @@ using TaF_Neo4j.DTOs.Rate;
 using TaF_Neo4j.Services.CookingRecepie;
 using TaF_Redis.Services.Content;
 using TaF_Redis.Services.User;
+using TaF_Redis.Types;
 
 namespace TaF_WebAPI.Controllers
 {
@@ -43,7 +44,10 @@ namespace TaF_WebAPI.Controllers
                 return BadRequest();
 
             if (await this._cookingRecepieService.CreateCookingRecepie(authorUsername, cookingRecepieDTO))
+            {
+                await this._userServiceRedis.CacheAuthorNewContent(authorUsername, ContentType.cookingRecepie);
                 return Ok();
+            }
             else
                 return BadRequest();
         }

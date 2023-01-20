@@ -98,39 +98,103 @@ namespace TaF_Redis.Services.User
         {
             try
             {
+
                 var authorOfContent_listKey = KeyGenerator.CreateKeyForAuthorPersonalContent(authorUsername, contentType);
-                object newContentObj;
-                Guid contentId;
-                if (contentType == Types.ContentType.blog)
+                if (await this._redis.ListLengthAsync(authorOfContent_listKey) < 5)
                 {
-                    this._neo4jCookingRecepieService = new CookingRecepieService(_neo4jClient);
-                    var newCookingRecepiePreview = await _neo4jCookingRecepieService.GetPreviewCookingRecepiesByAuthor(authorUsername, 1);
-                    newContentObj = newCookingRecepiePreview;
-                    contentId = newCookingRecepiePreview[0].CookingRecepieId;
+                    if (contentType == Types.ContentType.cookingRecepie)
+                        await this.CacheAuthorCookingRecepies(authorUsername);
+                    else
+                        await this.CacheAuthorBlogs(authorUsername);
                 }
                 else
                 {
-                    this._neo4jBlogService = new BlogService(_neo4jClient);
-                    var newBlogPreview = await _neo4jBlogService.GetPreviewBlogsByAuthor(authorUsername, 1);
-                    newContentObj = newBlogPreview;
-                    contentId = newBlogPreview[0].BlogId;
+                    object newContentObj;
+                    Guid contentId = Guid.Empty;
+                    if (contentType == Types.ContentType.blog)
+                    {
+                        this._neo4jCookingRecepieService = new CookingRecepieService(_neo4jClient);
+                        var newCookingRecepiePreview = await _neo4jCookingRecepieService.GetPreviewCookingRecepiesByAuthor(authorUsername, 1);
+                        newContentObj = newCookingRecepiePreview;
+                        if (newCookingRecepiePreview != null)
+                        {
+                            contentId = newCookingRecepiePreview[0].CookingRecepieId;
+                        }
+                    }
+                    else
+                    {
+                        this._neo4jBlogService = new BlogService(_neo4jClient);
+                        var newBlogPreview = await _neo4jBlogService.GetPreviewBlogsByAuthor(authorUsername, 1);
+                        newContentObj = newBlogPreview;
+
+                        if (newBlogPreview != null)
+                        {
+                            contentId = newBlogPreview[0].BlogId;
+                        }
+                    }
+
+                    if (newContentObj != null && contentId != Guid.Empty)
+                    {
+                        var oldContentFromCacheId = await this._redis.ListRightPopAsync(authorOfContent_listKey);
+                        AuxiliaryContentMethods.DecrementUsageCounterOfContent(_redis, oldContentFromCacheId);
+                        await AuxiliaryContentMethods.CacheContent(_redis, contentType, newContentObj,
+                                                                   contentId, authorOfContent_listKey, false);
+                    }
                 }
-
-                if(newContentObj !=null)
-                    await AuxiliaryContentMethods.CacheContent(_redis, contentType, newContentObj,
-                                                               contentId, authorOfContent_listKey, false);
-
             }
             catch(Exception ex) { } 
         }
-        public async Task CacheUsersNewSavedContent(string username, Types.ContentType contentType)
+        public async Task CacheUsersNewSavedContent(Types.UserType userType, string username, Types.ContentType contentType)
         {
             try
             {
+                var usersSavedContent_listKey = KeyGenerator.CreateKeyForUsersSavedContent(username, contentType);
+                if (await this._redis.ListLengthAsync(usersSavedContent_listKey) < 5)
+                {
+                    if(contentType == Types.ContentType.savedCookingRecepie)
+                        this.CacheUsersSavedCookingRecepies(userType, username);
+                    else
+                        this.CacheUsersSavedBlogs(userType, username);  
+                }
+                else
+                {
+                    object newSavedContentObj;
+                    Guid contentId = Guid.Empty;
 
+                    if (contentType == Types.ContentType.savedCookingRecepie)
+                    {
+                        this._neo4jCookingRecepieService = new CookingRecepieService(_neo4jClient);
+                        var newSavedCookingRecepie = await AuxiliaryContentMethods.GetUserSavedCookingRecepies(_neo4jClient, username, userType, 1);
+                        newSavedContentObj = newSavedCookingRecepie;
+                        if (newSavedCookingRecepie != null)
+                        {
+                            contentId = newSavedCookingRecepie[0].CookingRecepieId;
+                        }
+                    }
+                    else
+                    {
+                        this._neo4jBlogService = new BlogService(_neo4jClient);
+                        var newSavedBlog = await AuxiliaryContentMethods.GetUserSavedBlogs(_neo4jClient, username, userType, 1);
+                        newSavedContentObj = newSavedBlog;
+                        if (newSavedBlog != null)
+                        {
+                            contentId = newSavedBlog[0].BlogId;
+                        }
+                    }
+
+                    if (newSavedContentObj != null && contentId != Guid.Empty)
+                    {
+                        var oldContentFromCacheId = await this._redis.ListRightPopAsync(usersSavedContent_listKey);
+                        AuxiliaryContentMethods.DecrementUsageCounterOfContent(_redis, oldContentFromCacheId);
+                        await AuxiliaryContentMethods.CacheContent(_redis, contentType, newSavedContentObj,
+                                                                   contentId, usersSavedContent_listKey, false);
+                    }
+                }
             }
             catch (Exception ex) { }
         }
+
+        
 
         #endregion CacheData
 

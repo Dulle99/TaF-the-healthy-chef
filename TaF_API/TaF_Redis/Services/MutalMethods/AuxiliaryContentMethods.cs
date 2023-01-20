@@ -40,6 +40,7 @@ namespace TaF_Redis.Services.MutalMethods
                 await AppendUsageCounterOfContentField(_redis, contentHash_Key);
             }
 
+            await _redis.ListRemoveAsync(keyForList, contentHash_Key);
             if(list_pushAtTail)
                 await _redis.ListRightPushAsync(keyForList, contentHash_Key);
             else
@@ -86,31 +87,31 @@ namespace TaF_Redis.Services.MutalMethods
                 return new List<T>();
         }
 
-        public async static Task<List<CookingRecepiePreviewDTO>> GetUserSavedCookingRecepies(IGraphClient client, string username, Types.UserType typeOfUser)
+        public async static Task<List<CookingRecepiePreviewDTO>> GetUserSavedCookingRecepies(IGraphClient client, string username, Types.UserType typeOfUser, int numberOfRecepiesToGet = 5)
         {
             if(typeOfUser == Types.UserType.Author)
             {
                 var authorService = new AuthorService(client);
-                return await authorService.GetReadLaterCookingRecepies(username, 5);
+                return await authorService.GetReadLaterCookingRecepies(username, numberOfRecepiesToGet);
             }
             else
             {
                 var readerService = new ReaderService(client);
-                return await readerService.GetReadLaterCookingRecepies(username, 5);
+                return await readerService.GetReadLaterCookingRecepies(username, numberOfRecepiesToGet);
             }
         }
 
-        public async static Task<List<BlogPreviewDTO>> GetUserSavedBlogs(IGraphClient client, string username, Types.UserType typeOfUser)
+        public async static Task<List<BlogPreviewDTO>> GetUserSavedBlogs(IGraphClient client, string username, Types.UserType typeOfUser, int numberOfBlogsToGet = 5)
         {
             if (typeOfUser == Types.UserType.Author)
             {
                 var authorService = new AuthorService(client);
-                return await authorService.GetReadLaterBlogs(username, 5);
+                return await authorService.GetReadLaterBlogs(username, numberOfBlogsToGet);
             }
             else
             {
                 var readerService = new ReaderService(client);
-                return await readerService.GetReadLaterBlogs(username, 5);
+                return await readerService.GetReadLaterBlogs(username, numberOfBlogsToGet);
             }
         }
 
