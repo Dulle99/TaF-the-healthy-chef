@@ -109,37 +109,8 @@ namespace TaF_Redis.Services.User
                 }
                 else
                 {
-                    object newContentObj;
-                    Guid contentId = Guid.Empty;
-                    if (contentType == Types.ContentType.blog)
-                    {
-                        this._neo4jCookingRecepieService = new CookingRecepieService(_neo4jClient);
-                        var newCookingRecepiePreview = await _neo4jCookingRecepieService.GetPreviewCookingRecepiesByAuthor(authorUsername, 1);
-                        newContentObj = newCookingRecepiePreview;
-                        if (newCookingRecepiePreview != null)
-                        {
-                            contentId = newCookingRecepiePreview[0].CookingRecepieId;
-                        }
-                    }
-                    else
-                    {
-                        this._neo4jBlogService = new BlogService(_neo4jClient);
-                        var newBlogPreview = await _neo4jBlogService.GetPreviewBlogsByAuthor(authorUsername, 1);
-                        newContentObj = newBlogPreview;
-
-                        if (newBlogPreview != null)
-                        {
-                            contentId = newBlogPreview[0].BlogId;
-                        }
-                    }
-
-                    if (newContentObj != null && contentId != Guid.Empty)
-                    {
-                        var oldContentFromCacheId = await this._redis.ListRightPopAsync(authorOfContent_listKey);
-                        AuxiliaryContentMethods.DecrementUsageCounterOfContent(_redis, oldContentFromCacheId);
-                        await AuxiliaryContentMethods.CacheContent(_redis, contentType, newContentObj,
-                                                                   contentId, authorOfContent_listKey, false);
-                    }
+                    (object content, Guid contentId) content_tuple = await AuxiliaryContentMethods.GetTheNewestContentAndIdBasedByContentType(this._neo4jClient, Types.UserType.Author, authorUsername, contentType);
+                    await AuxiliaryContentMethods.PopLastAndAppendNewContentInList(_redis, authorOfContent_listKey, contentType, content_tuple.content, content_tuple.contentId);
                 }
             }
             catch(Exception ex) { } 
@@ -152,49 +123,18 @@ namespace TaF_Redis.Services.User
                 if (await this._redis.ListLengthAsync(usersSavedContent_listKey) < 5)
                 {
                     if(contentType == Types.ContentType.savedCookingRecepie)
-                        this.CacheUsersSavedCookingRecepies(userType, username);
+                        await this.CacheUsersSavedCookingRecepies(userType, username);
                     else
-                        this.CacheUsersSavedBlogs(userType, username);  
+                        await this.CacheUsersSavedBlogs(userType, username);  
                 }
                 else
                 {
-                    object newSavedContentObj;
-                    Guid contentId = Guid.Empty;
-
-                    if (contentType == Types.ContentType.savedCookingRecepie)
-                    {
-                        this._neo4jCookingRecepieService = new CookingRecepieService(_neo4jClient);
-                        var newSavedCookingRecepie = await AuxiliaryContentMethods.GetUserSavedCookingRecepies(_neo4jClient, username, userType, 1);
-                        newSavedContentObj = newSavedCookingRecepie;
-                        if (newSavedCookingRecepie != null)
-                        {
-                            contentId = newSavedCookingRecepie[0].CookingRecepieId;
-                        }
-                    }
-                    else
-                    {
-                        this._neo4jBlogService = new BlogService(_neo4jClient);
-                        var newSavedBlog = await AuxiliaryContentMethods.GetUserSavedBlogs(_neo4jClient, username, userType, 1);
-                        newSavedContentObj = newSavedBlog;
-                        if (newSavedBlog != null)
-                        {
-                            contentId = newSavedBlog[0].BlogId;
-                        }
-                    }
-
-                    if (newSavedContentObj != null && contentId != Guid.Empty)
-                    {
-                        var oldContentFromCacheId = await this._redis.ListRightPopAsync(usersSavedContent_listKey);
-                        AuxiliaryContentMethods.DecrementUsageCounterOfContent(_redis, oldContentFromCacheId);
-                        await AuxiliaryContentMethods.CacheContent(_redis, contentType, newSavedContentObj,
-                                                                   contentId, usersSavedContent_listKey, false);
-                    }
+                    (object content, Guid contentId) content_tuple= await AuxiliaryContentMethods.GetTheNewestContentAndIdBasedByContentType(this._neo4jClient, userType, username, contentType);
+                    await AuxiliaryContentMethods.PopLastAndAppendNewContentInList(_redis, usersSavedContent_listKey, contentType, content_tuple.content, content_tuple.contentId);
                 }
             }
             catch (Exception ex) { }
         }
-
-        
 
         #endregion CacheData
 
@@ -205,7 +145,6 @@ namespace TaF_Redis.Services.User
             try
             {
                 var authorCachedCookingRecepies_ListKey = KeyGenerator.CreateKeyForAuthorPersonalContent(authorUsername, Types.ContentType.cookingRecepie);
-                //var cachedHashKeys_OfCookingRecepies = _redis.SetMembers(authorCachedCookingRecepies_SetKey).ToStringArray();
                 var cachedHashKeys_OfCookingRecepies = _redis.ListRange(authorCachedCookingRecepies_ListKey).ToStringArray();
 
                 var cookingRecepiesOfTheAuthor = await AuxiliaryContentMethods.GetContentFromHash<CookingRecepiePreviewDTO>(this._redis, cachedHashKeys_OfCookingRecepies);
@@ -222,7 +161,6 @@ namespace TaF_Redis.Services.User
             try
             {
                 var authorBlogs_ListKey = KeyGenerator.CreateKeyForAuthorPersonalContent(authorUsername, Types.ContentType.blog);
-                //var cachedHashKeys_OfBlogs = _redis.SetMembers(authorBlogs_SetKey).ToStringArray();
                 var cachedHashKeys_OfBlogs = _redis.ListRange(authorBlogs_ListKey).ToStringArray();
 
                 var blogsOfTheAuthor = await AuxiliaryContentMethods.GetContentFromHash<BlogPreviewDTO>(this._redis, cachedHashKeys_OfBlogs);
@@ -239,7 +177,6 @@ namespace TaF_Redis.Services.User
             try
             {
                 var userSavedCookingRecepies_ListKey = KeyGenerator.CreateKeyForUsersSavedContent(username, ContentType.savedCookingRecepie);
-                //var cachedHashKeys_OfSavedCookingRecepies = _redis.SetMembers(userSavedCookingRecepies_ListKey).ToStringArray();
                 var cachedHashKeys_OfSavedCookingRecepies = _redis.ListRange(userSavedCookingRecepies_ListKey).ToStringArray();
 
                 var savedCookingRecepies = await AuxiliaryContentMethods.GetContentFromHash<CookingRecepiePreviewDTO>(this._redis, cachedHashKeys_OfSavedCookingRecepies);
@@ -256,7 +193,6 @@ namespace TaF_Redis.Services.User
             try
             {
                 var userSavedBlogs_ListKey = KeyGenerator.CreateKeyForUsersSavedContent(username, ContentType.savedBlog);
-                //var cachedHashKeys_OfSavedBlogs = _redis.SetMembers(userSavedBlogs_SetKey).ToStringArray();
                 var cachedHashKeys_OfSavedBlogs = _redis.ListRange(userSavedBlogs_ListKey).ToStringArray();
 
                 var savedBlogs = await AuxiliaryContentMethods.GetContentFromHash<BlogPreviewDTO>(_redis, cachedHashKeys_OfSavedBlogs);
@@ -303,10 +239,12 @@ namespace TaF_Redis.Services.User
             {
                 var contentHashKey = KeyGenerator.CreateKeyForContent(contentType == ContentType.savedCookingRecepie ? ContentType.cookingRecepie : ContentType.blog, contentId);
                 var userSavedContent_listKey = KeyGenerator.CreateKeyForUsersSavedContent(username, contentType);
-                //var res = await _redis.SetRemoveAsync(new RedisKey(userSavedContent_listKey), new RedisValue(contentHashKey));
                 var res = await _redis.ListRemoveAsync(new RedisKey(userSavedContent_listKey), new RedisValue(contentHashKey));
-                if(res >= 1)
+                if (res >= 1)
+                {
                     await AuxiliaryContentMethods.DecrementUsageCounterOfContent(_redis, contentHashKey);
+                }
+
             }
             catch(Exception ex) { }
         }

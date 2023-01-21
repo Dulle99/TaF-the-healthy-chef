@@ -94,7 +94,6 @@ namespace TaF_WebAPI.Controllers
         public async Task<IActionResult> GetRecommendedPreviewBlogs()
         {
             return new JsonResult(await this._contentServiceRedis.GetCachedRecomendedBlogs());
-            //return new JsonResult(await this._blogService.GetRecommendedBlogs());
         }
 
         [HttpGet]

@@ -99,7 +99,6 @@ namespace TaF_WebAPI.Controllers
         public async Task<IActionResult> GetRecommendedPreviewCookingRecepies()
         {
             return new JsonResult(await this._contentServiceRedis.GetCachedRecomendedCookingRecepies());
-            //return new JsonResult(await this._cookingRecepieService.GetRecommendedCookingRecepies());
         }
 
         [HttpGet]

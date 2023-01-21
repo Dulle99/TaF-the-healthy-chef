@@ -19,8 +19,6 @@ namespace TaF_Redis.Services.Content
 {
     public class ContentServiceRedis : IContentServiceRedis
     {
-        //private CookingRecepieService _cookingRecepieService;
-        //private BlogService _blogServiceRedis;
         private IGraphClient _neo4jClient;
         private IDatabase _redis;
 
@@ -85,7 +83,6 @@ namespace TaF_Redis.Services.Content
             try
             {
                 var recomendedCookingRecepies_listKey = KeyGenerator.CreateKeyForRecomendedCookingRecepies();
-                //var recomendedCookingRecepies_HashKeys = this._redis.SetMembers(recomendedCookingRecepies_SetKey).ToStringArray();
                 var recomendedCookingRecepies_HashKeys = this._redis.ListRange(recomendedCookingRecepies_listKey).ToStringArray();
 
                 return await AuxiliaryContentMethods.GetContentFromHash<CookingRecepiePreviewDTO>(this._redis, recomendedCookingRecepies_HashKeys);
@@ -98,7 +95,6 @@ namespace TaF_Redis.Services.Content
             try
             {
                 var recomendedBlogs_listKey = KeyGenerator.CreateKeyForRecomendedBlogs();
-                //var recomendedBlogs_HashKeys =  this._redis.SetMembers(recomendedBlogs_SetKey).ToStringArray();
                 var recomendedBlogs_HashKeys = this._redis.ListRange(recomendedBlogs_listKey).ToStringArray();
 
                 return await AuxiliaryContentMethods.GetContentFromHash<BlogPreviewDTO>(this._redis, recomendedBlogs_HashKeys);

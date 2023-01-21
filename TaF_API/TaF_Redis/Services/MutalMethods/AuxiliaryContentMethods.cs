@@ -20,6 +20,7 @@ using TaF_Neo4j.Services.CookingRecepie;
 using TaF_Neo4j.Services.User.Author;
 using TaF_Neo4j.Services.User.Reader;
 using TaF_Redis.KeyScheme;
+using TaF_Redis.Types;
 
 namespace TaF_Redis.Services.MutalMethods
 {
@@ -45,7 +46,6 @@ namespace TaF_Redis.Services.MutalMethods
                 await _redis.ListRightPushAsync(keyForList, contentHash_Key);
             else
                 await _redis.ListLeftPushAsync(keyForList, contentHash_Key);
-            //await _redis.SetAddAsync(keyForSet, contentHash_Key);
         }
 
         public async static Task AppendUsageCounterOfContentField(IDatabase _redis, string hashKey)
@@ -121,6 +121,54 @@ namespace TaF_Redis.Services.MutalMethods
                 return await CookingRecepieServiceAuxiliaryMethods.GetCookingRecepiePreview(client, contentId);
             else
                 return await BlogServiceAuxiliaryMethods.GetBlogPreview(client, contentId);
+        }
+
+        public static async Task<(object content, Guid contentId)> GetTheNewestContentAndIdBasedByContentType(IGraphClient _client, Types.UserType userType, string username, Types.ContentType contentType)
+        {
+            try
+            {
+                if(contentType == Types.ContentType.cookingRecepie || contentType == Types.ContentType.savedCookingRecepie)
+                {
+                    List<CookingRecepiePreviewDTO> cookingRecepiePreview;
+                    if (contentType == Types.ContentType.cookingRecepie)
+                    {
+                        var cookingRecepieService = new CookingRecepieService(_client);
+                        cookingRecepiePreview = await cookingRecepieService.GetPreviewCookingRecepiesByAuthor(username, 1);
+                    }
+                    else
+                        cookingRecepiePreview = await GetUserSavedCookingRecepies(_client, username, userType, 1);
+                    
+                    if(cookingRecepiePreview.Count > 0) 
+                        return (cookingRecepiePreview[0], cookingRecepiePreview[0].CookingRecepieId);
+                }
+                else
+                {
+                    List<BlogPreviewDTO> blogPreviewDTO;
+                    if (contentType == Types.ContentType.blog)
+                    {
+                        var blogService = new BlogService(_client);
+                        blogPreviewDTO = await blogService.GetPreviewBlogsByAuthor(username, 1);
+                    }
+                    else
+                        blogPreviewDTO = await GetUserSavedBlogs(_client, username, userType, 1);
+
+                    if(blogPreviewDTO.Count > 0)
+                        return (blogPreviewDTO[0], blogPreviewDTO[0].BlogId);
+                }
+
+                return (null, Guid.Empty);
+            }
+            catch(Exception ex) { return (null, Guid.Empty); }
+        }
+
+        public static async Task PopLastAndAppendNewContentInList(IDatabase _redis, string listKey, Types.ContentType contentType, object content, Guid contentId)
+        {
+            if (content != null && contentId != Guid.Empty)
+            {
+                var oldContentFromCacheId = await _redis.ListRightPopAsync(listKey);
+                await DecrementUsageCounterOfContent(_redis, oldContentFromCacheId);
+                await CacheContent(_redis, contentType, content, contentId, listKey, false);
+            }
         }
 
         #endregion GetCache
