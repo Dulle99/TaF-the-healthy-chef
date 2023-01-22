@@ -246,7 +246,7 @@ namespace TaF_WebAPI.Controllers
             {
                 if (await this._authorService.RemoveBlogToReadLater(username, blogId))
                 {
-                    await this._userServiceRedis.RemoveUserSavedContent(username, TaF_Redis.Types.ContentType.savedBlog, blogId);
+                    await this._userServiceRedis.RemoveUserSavedContent(username, TaF_Redis.Types.ContentType.savedBlog, UserType.Author);
                     return Ok();
                 }
                 else
@@ -256,7 +256,7 @@ namespace TaF_WebAPI.Controllers
             {
                 if (await this._readerService.RemoveBlogToReadLater(username, blogId))
                 {
-                    await this._userServiceRedis.RemoveUserSavedContent(username, TaF_Redis.Types.ContentType.savedBlog, blogId);
+                    await this._userServiceRedis.RemoveUserSavedContent(username, TaF_Redis.Types.ContentType.savedBlog, UserType.Reader);
                     return Ok();
                 }
                 else
@@ -275,7 +275,7 @@ namespace TaF_WebAPI.Controllers
             {
                 if (await this._authorService.RemoveCookingRecepieToReadLater(username, cookingRecepieId))
                 {
-                    await this._userServiceRedis.RemoveUserSavedContent(username, TaF_Redis.Types.ContentType.savedCookingRecepie, cookingRecepieId);
+                    await this._userServiceRedis.RemoveUserSavedContent(username, TaF_Redis.Types.ContentType.savedCookingRecepie, UserType.Author);
                     return Ok();
                 }
                 else
@@ -285,7 +285,7 @@ namespace TaF_WebAPI.Controllers
             {
                 if (await this._readerService.RemoveCookingRecepieToReadLater(username, cookingRecepieId))
                 {
-                    await this._userServiceRedis.RemoveUserSavedContent(username, TaF_Redis.Types.ContentType.savedCookingRecepie, cookingRecepieId);
+                    await this._userServiceRedis.RemoveUserSavedContent(username, TaF_Redis.Types.ContentType.savedCookingRecepie, UserType.Reader);
                     return Ok();
                 }
                 else

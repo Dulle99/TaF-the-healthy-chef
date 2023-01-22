@@ -25,8 +25,6 @@ namespace TaF_Redis.Services.User
             this._neo4jClient = client;
         }
 
-        
-
         #region CacheData
 
         public async Task CacheAuthorCookingRecepies(string username, int numberOfCoookingRecepiesToCache = 5)
@@ -232,19 +230,17 @@ namespace TaF_Redis.Services.User
             catch (Exception ex) { }
         }
 
-        public async Task RemoveUserSavedContent(string username, Types.ContentType contentType, Guid contentId)
+        public async Task RemoveUserSavedContent(string username, Types.ContentType contentType, UserType userType)
         {
-            //test this method (19.1.2023)
             try
             {
-                var contentHashKey = KeyGenerator.CreateKeyForContent(contentType == ContentType.savedCookingRecepie ? ContentType.cookingRecepie : ContentType.blog, contentId);
                 var userSavedContent_listKey = KeyGenerator.CreateKeyForUsersSavedContent(username, contentType);
-                var res = await _redis.ListRemoveAsync(new RedisKey(userSavedContent_listKey), new RedisValue(contentHashKey));
-                if (res >= 1)
-                {
-                    await AuxiliaryContentMethods.DecrementUsageCounterOfContent(_redis, contentHashKey);
-                }
+                await AuxiliaryContentMethods.RemoveCache(this._redis, userSavedContent_listKey);
 
+                if (contentType == Types.ContentType.savedCookingRecepie)
+                    await this.CacheUsersSavedCookingRecepies(userType, username);
+                else
+                    await this.CacheUsersSavedBlogs(userType, username);
             }
             catch(Exception ex) { }
         }
