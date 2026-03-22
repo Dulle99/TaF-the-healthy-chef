@@ -3,7 +3,7 @@
 Full-stack web application for discovering healthy recipes and nutrition-focused blog content.
 
 ## Overview
-- Course project from Software Engineering
+- Originally developed as a university course project for Software Engineering
 - Built for students, high-school students, and content authors
 - Focused on healthy eating, recipe discovery, and educational blog content
 
