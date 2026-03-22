@@ -34,7 +34,7 @@ Many students and high-school students rely on unhealthy fast food and lack simp
 - Quartz.NET
 
 ## Architecture
-[insert architecture diagram]
+The complete architecture documentation is available in the `documentation` folder.
 
 ## Project Structure
 - `TaF_API/`
@@ -49,7 +49,7 @@ Many students and high-school students rely on unhealthy fast food and lack simp
 
 
 ## Screenshots
-...
+Application screenshots and other visual materials are available in the `documentation` folder.
 
 ## What I Learned
 - Full-stack architecture
