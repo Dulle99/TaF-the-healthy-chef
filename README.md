@@ -42,27 +42,11 @@ Many students and high-school students rely on unhealthy fast food and lack simp
 - `docs/`
 - `assets/`
 
-## Running the Project
-### Backend
-...
-### Frontend
-...
-### Database / Cache
-...
-
 ## API Overview
 - User endpoints
 - Blog endpoints
 - Recipe endpoints
 
-## Documentation
-Links to:
-- Vision
-- Requirements Specification
-- Architecture Document
-- Test Plan
-- Test Specification
-- User Manual
 
 ## Screenshots
 ...
