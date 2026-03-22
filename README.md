@@ -34,7 +34,7 @@ Many students and high-school students rely on unhealthy fast food and lack simp
 - Quartz.NET
 
 ## Architecture
-The complete architecture documentation is available in the `documentation` folder.
+The complete architecture documentation is available in the `documentation` folder. (D05_Arh_Projekat.docx)
 
 ## Project Structure
 - `TaF_API/`
@@ -49,7 +49,7 @@ The complete architecture documentation is available in the `documentation` fold
 
 
 ## Screenshots
-Application screenshots and other visual materials are available in the `documentation` folder.
+Application screenshots and other visual materials are available in the `documentation` folder. (D08_Kor_Uputstvo.docx)
 
 ## What I Learned
 - Full-stack architecture
